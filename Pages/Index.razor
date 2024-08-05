@@ -1,0 +1,42 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Index</PageTitle>
+<MudContainer >
+	<MudStack Class="pa-16">
+		<MudGrid>
+			<MudSpacer/>
+			
+			<MudText>
+				@if (isUserLoggedIn)
+				{
+					<h1>Welcome back @username!</h1>
+				}
+				else
+				{
+					<h1>Welcome! Please log in or register</h1>
+				}
+			</MudText>
+			<MudSpacer/>
+		</MudGrid>
+	</MudStack>
+</MudContainer>
+
+@code {
+	private bool isUserLoggedIn;
+	private string username;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		isUserLoggedIn = user.Identity.IsAuthenticated;
+		if (isUserLoggedIn)
+		{
+			username = user.Identity.Name;
+		}
+	}
+}
+
+

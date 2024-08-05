@@ -1,0 +1,68 @@
+
+@page "/fetchalbums"
+@using AlbumDatabaseServer.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+<h3>Album list</h3>
+
+@if (albums == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<table style="width: 1576px; height: 129px; display: table; float: none; visibility: visible; vertical-align: baseline; font-family: Circular Std Black" class="table-bordered">
+		<thead>
+			<tr>
+				<th>Album Name</th>
+				<th>Artist</th>
+				<th>Genres</th>
+				<th>Songs</th>
+				<th>Release Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var album in albums)
+			{
+				<tr>
+					<td>@album.Name</td>
+					<td>@album.Artist?.ArtistName</td>
+					<td>
+						@foreach (var albumGenre in album.AlbumGenres)
+						{
+							<span>@albumGenre.Genre.Name</span>
+							@if (albumGenre != album.AlbumGenres.Last())
+							{
+								<span>, </span>
+							}
+						}
+					</td>
+					<td>
+						<ol>
+							@foreach (var song in album.Songs.OrderBy(s => s.SongPosition))
+							{
+								<li>@song.SongName</li>
+							}
+						</ol>
+					</td>
+					<td>@album.ReleaseDate.ToShortDateString()</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
+}
+@code {
+	private List<Album> albums;
+	protected override async Task OnInitializedAsync()
+	{
+		using var context = DbFactory.CreateDbContext();
+		albums = await context.Albums
+							.Include(a => a.Artist)
+							.Include(a => a.AlbumGenres)
+							.ThenInclude(ag => ag.Genre)
+							.Include(a => a.Songs)
+							.ToListAsync();
+	}
+}

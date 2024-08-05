@@ -1,0 +1,174 @@
+﻿@using AlbumDatabaseServer.Data
+@using Microsoft.EntityFrameworkCore
+@inject IConfiguration _configuration
+@inject IWebHostEnvironment _env
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject AlbumService AlbumService
+
+<MudDialog Style="background-color: #212121">
+	<DialogContent>
+		<MudForm @ref="form">
+			<MudTextField
+				Label="Album name" 
+				@bind-Value="_newAlbum" 
+				Variant="Variant.Outlined" 
+				Style="background-color: #121212"
+				Required="true"
+				RequiredError="Album name is required"/>
+			<MudTextField
+				@bind-Value="_newArtist" 
+				Label="Artist name"
+				Variant="Variant.Outlined" 
+				Style="background-color: #121212" 
+				Class="mt-2"
+				Required="true"
+				RequiredError="Artist name is required"/>
+			<MudChipSet Filter="true" 
+				Class="mt-4 mb-0" 
+				MultiSelection="true" 
+				@bind-SelectedChips="selectedGenres">
+				@if (genres != null)
+				{
+					@foreach (var genre in genres)
+					{
+						<MudChip Color="Color.Success" Text="@genre.Name" Value="@genre" />
+					}
+				}
+			</MudChipSet>
+			<MudDatePicker Class="mt-4" Label="Release date" @bind-Date="releaseDate" Editable="true" Placeholder="Select date" Color="Color.Success"/>
+			<MudFileUpload Class="mt-4" 
+				T="IBrowserFile" 
+				@bind-File="uploadedCover" 
+				Accept=".png, .jpg" 
+				MaximumFileCount="1" 
+				Required="true" 
+				RequiredError="Please upload an album cover"
+				FilesChanged="HandleFilesChanged"
+				For="@(() => uploadedCover)">
+				<ButtonTemplate>
+					<MudButton HtmlTag="label"
+						Variant="Variant.Filled"
+						Color="Color.Success"
+						StartIcon="@Icons.Material.Filled.Image"
+						for="@context.Id">
+						Upload cover
+					</MudButton>
+				</ButtonTemplate>
+				<SelectedTemplate>
+					@if (@context != null)
+					{
+						<MudText Class="mt-2">@context.Name</MudText>
+					}
+					else
+					{
+						<MudText Class="mt-2">No File</MudText>
+					}
+				</SelectedTemplate>
+			</MudFileUpload>
+		</MudForm>
+	</DialogContent>
+	<DialogActions>
+		<div hidden="@HideSuccess">
+			<MudText Color="Color.Success">Submitted album!</MudText>
+		</div>
+		<MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+		<MudButton Variant="Variant.Filled" OnClick="SubmitAlbum">Submit Album</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter]
+	MudDialogInstance MudDialog { get; set; } = null!;
+	private MudForm form;
+	private string _newAlbum;
+	private string _newArtist;
+	private List<Genre> genres;
+	MudChip[] selectedGenres = Array.Empty<MudChip>();
+	DateTime? releaseDate = DateTime.Today;
+	private bool HideSuccess { get; set; } = true;
+	private IBrowserFile uploadedCover;
+
+	protected override async Task OnInitializedAsync()
+	{
+		using var context = DbFactory.CreateDbContext();
+		genres = await context.Genres.ToListAsync();  // Fetch all genres into a separate liste
+	}
+
+	// public class GenreValidationAttribute : ValidationAttribute
+	// {
+	// 	protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+	// 	{
+	// 		var chips = value as MudChip[];
+	// 		if (chips == null || !chips.Any())
+	// 		{
+	// 			return new ValidationResult("Please select at least one genre");
+	// 		}
+	// 		return ValidationResult.Success;
+	// 	}
+
+	// }
+
+	private void HandleFilesChanged(IBrowserFile file)
+	{
+		uploadedCover = file;
+		StateHasChanged();
+	}
+
+	private async Task<string> SaveImageToServer(IBrowserFile coverImage)
+	{
+		//var uploadsPath = _configuration["ImageUploadPath"];
+		var wwwrootPath = _env.WebRootPath;
+		var uploadsFolder = "uploads";
+		var uploadsAbsPath = Path.Combine(wwwrootPath, uploadsFolder);
+		if (!Directory.Exists(uploadsAbsPath))
+			Directory.CreateDirectory(uploadsAbsPath);
+		var fileName = Path.GetRandomFileName() + Path.GetExtension(coverImage.Name);
+		var filePath = Path.Combine(uploadsAbsPath, fileName);
+
+		await using var fs = new FileStream(filePath, FileMode.Create); // upload the file to the ABSOLUTE path
+		await coverImage.OpenReadStream().CopyToAsync(fs);
+		return Path.Combine(uploadsFolder, fileName); // return cover's RELATIVE path for the database entry
+	}
+
+	async Task SubmitAlbum()
+	{
+		form.Validate();
+		bool formIsValid = form.IsValid;
+		if (formIsValid && uploadedCover != null && releaseDate.HasValue)
+		{
+			HideSuccess = false;
+			var releaseDateUtc = releaseDate.Value.ToUniversalTime();
+			using var context = DbFactory.CreateDbContext();
+			var artist = await context.Artists.FirstOrDefaultAsync(a => a.ArtistName.ToLower() == _newArtist.ToLower());
+			if (artist == null)
+			{
+				artist = new Artist { ArtistName = _newArtist };
+				context.Artists.Add(artist);
+				await context.SaveChangesAsync();
+			}
+			var filePath = await SaveImageToServer(uploadedCover);
+			var newAlbum = new Album
+			{
+				Name = _newAlbum,
+				ArtistId = artist.ArtistId,
+				ReleaseDate = releaseDateUtc,
+				AlbumCover  = filePath
+			};
+			await context.Albums.AddAsync(newAlbum);
+			await context.SaveChangesAsync();
+			foreach (var genre in selectedGenres)
+			{
+				context.AlbumGenres.Add(new AlbumGenre { AlbumId = newAlbum.AlbumId, GenreId = ((Genre)genre.Value).GenreId });
+			}
+			await context.SaveChangesAsync();
+			AlbumService.NotifyStateChanged();
+			await Task.Delay(1000);
+			MudDialog.Close(DialogResult.Ok(true));
+		}
+	}
+
+	void Cancel()
+	{
+		MudDialog.Cancel();
+	}
+}

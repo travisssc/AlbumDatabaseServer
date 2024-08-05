@@ -1,0 +1,252 @@
+@page "/fetchdata"
+@using AlbumDatabaseServer.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDialogService DialogService
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject AlbumService AlbumService
+@inject SongService SongService
+
+@if (AlbumService.Albums.Count == 0)
+{
+	<MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+	<div @onclick="ClearSelection">
+		<MudContainer Class="ma-0 pa-3 rounded-lg" Fixed="true">
+			<div @onclick:stopPropagation="true">
+				<MudDataGrid T="Album" MultiSelection="true" Items="@AlbumService.Albums" SortMode="SortMode.None" QuickFilter="@_quickFilter"
+								Style="height: 100%; width: 100%;" ColumnResizeMode="ResizeMode.Column" Hover="true" RowClick="@(args => OnRowClicked(args))"
+								RowStyleFunc="@((item, idx) => TblRowStyle(item, idx))" RowsPerPage="5" >
+					<ToolBarContent>
+						<MudText Typo="Typo.h6">Album List</MudText>
+						<MudIconButton Icon="@Icons.Material.Filled.AddCircleOutline" OnClick="OpenDialog" />
+						<MudSpacer/>
+						<MudSpacer/>
+						<MudTextField @bind-Value="_searchString" Placeholder="Search albums" 
+							Adornment="Adornment.Start" Immediate="true" Variant="Variant.Outlined"
+							AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-2"/>
+					</ToolBarContent>
+					<Columns>
+						<HierarchyColumn T="Album" />
+						<PropertyColumn Property="x => x.AlbumCover" Title="">
+							<CellTemplate>
+								@if (!string.IsNullOrEmpty(context.Item.AlbumCover))
+								{
+									<MudStack Class="d-flex align-center justify-center">
+										<MudImage Src="@context.Item.AlbumCover" Alt="@context.Item.Name" Width="100" Class="rounded-lg" />
+									</MudStack>
+								}
+								else
+								{
+									<MudText>No Cover</MudText>
+								}
+							</CellTemplate>
+						</PropertyColumn>
+						<PropertyColumn Property="x => x.Name" />
+						<PropertyColumn Property="x => x.Artist.ArtistName" Title="Artist" />
+						<PropertyColumn Property="x => x.ReleaseDate.ToShortDateString()" Title="Released" />
+						<TemplateColumn Title="Genres">
+							<CellTemplate>
+								@foreach (var albumGenre in context.Item.AlbumGenres)
+								{
+									@albumGenre.Genre.Name
+									@if (albumGenre != context.Item.AlbumGenres.Last())
+									{
+										<span>, </span>
+									}
+								}
+							</CellTemplate>
+						</TemplateColumn>
+					</Columns>
+					<ChildRowContent>
+						@{
+							expandedAlbumId = context.Item.AlbumId;
+							expandedArtistId = context.Item.ArtistId;
+						}
+						<MudStack Row>
+							<MudCard Elevation="25" Class="pa-2 rounded-lg">
+								<MudCardHeader>
+									<CardHeaderContent>
+										<MudStack Row>
+											<MudText Typo="Typo.h6">Tracklist</MudText>
+											<MudIconButton Icon="@Icons.Material.Filled.EditNote" OnClick="@ToggleAddSong" Class="mt-n2" />
+										</MudStack>
+									</CardHeaderContent>
+								</MudCardHeader>
+								<MudCardContent>
+									<MudTable Elevation="0" Items="@SongService.GetSongsFromAlbum(context.Item.AlbumId)" Dense="true" Hover="true" Class="mt-n6">
+										<HeaderContent>
+											<MudTh>#</MudTh>
+											<MudTh>Title</MudTh>
+										</HeaderContent>
+										<RowTemplate Context="song">
+											<MudTd DataLabel="#">@song.SongPosition</MudTd>
+											<MudTd DataLabel="Title">@song.SongName</MudTd>
+										</RowTemplate>
+									</MudTable>
+								</MudCardContent>
+							</MudCard>
+							@if (showAddSong)
+							{
+								<MudStack>
+									<MudPaper Elevation="25" Class="pa-2 rounded-lg" MaxWidth="250px">
+										<MudStack Row>
+											<MudTextField @bind-Value="_newSongName" Placeholder="New Song" DisableUnderLine="true" Class="mx-4"
+														  Required="true" RequiredError="Please enter a title" />
+											<MudNumericField @bind-Value="_newSongPos" Placeholder="1" Min="1" Style="width: 50px;" DisableUnderLine="true" FullWidth="false" />
+										</MudStack>
+										<MudButton OnClick="AddSong" Size="Size.Small" FullWidth="true" Color="Color.Primary" Class="mt-2">Add Song</MudButton>
+										@if (showPosError)
+										{
+											<MudText Class="mt-2" Typo="Typo.subtitle2" Color="Color.Error">Track # already exists!</MudText>
+										}
+									</MudPaper>
+									<MudPaper Elevation="25" Class="pa-2 rounded-lg" MaxWidth="250px">
+										<MudStack Row>
+											<MudTextField @bind-Value="_deleteSongName" Placeholder="Delete Song" DisableUnderLine="true" Class="mx-4"
+														  Required="true" RequiredError="Please enter a title" />
+											<MudNumericField @bind-Value="_deleteSongPos" Placeholder="1" Min="1" Style="width: 50px;" DisableUnderLine="true" FullWidth="false" />
+										</MudStack>
+										<MudButton OnClick="DeleteSong" Size="Size.Small" FullWidth="true" Color="Color.Primary" Class="mt-2">Delete Song</MudButton>
+										@if (showDelError)
+										{
+											<MudText Class="mt-2" Typo="Typo.subtitle2" Color="Color.Error">Song not found!</MudText>
+										}
+									</MudPaper>
+								</MudStack>
+							}
+						</MudStack>
+					</ChildRowContent>
+					<PagerContent>
+						<MudDataGridPager T="Album"/>
+					</PagerContent>
+				</MudDataGrid>
+			</div>
+		</MudContainer>
+	</div>
+}
+
+@code {
+	private List<Album> albums = new();
+	private List<string> _events = new();
+	private string _searchString;
+	public bool showSearchBox = false;
+	Album selectedItem = new Album();
+	private string _newSongName;
+	private int _newSongPos = 1;
+	private bool showAddSong = false;
+	private int expandedAlbumId;
+	private int expandedArtistId;
+	private bool showPosError = false;
+	private bool showSongSubmit = false;
+	private string _deleteSongName;
+	private int _deleteSongPos = 1;
+	private bool showDelError = false;
+	protected override async Task OnInitializedAsync()
+	{
+		AlbumService.AlbumsChanged += AlbumService_AlbumsChanged;
+		await AlbumService.RefreshAlbumsAsync();
+	}
+	private async void AlbumService_AlbumsChanged(object sender, EventArgs e)
+	{
+		await InvokeAsync(StateHasChanged);
+	}
+	public void ClearSelection()
+	{
+		if (selectedItem != null) selectedItem = null;
+		StateHasChanged();
+	}
+	private Func<Album, bool> _quickFilter => x =>
+	{
+		if (string.IsNullOrWhiteSpace(_searchString))
+			return true;
+
+		if (x.Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+			return true;
+
+		if (x.Artist.ArtistName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+			return true;
+
+		if ($"{x.AlbumId} {x.Artist.ArtistName}".Contains(_searchString))
+			return true;
+
+		return false;
+	};
+	private void OnRowClicked(DataGridRowClickEventArgs<Album> album)
+	{
+		selectedItem = album.Item;
+	}
+	private string TblRowStyle(Album album, int index)
+	{
+		if (album.AlbumId == selectedItem?.AlbumId) return $"background-color: #535353 ";
+		else return "";
+	}
+	private void OpenDialog()
+	{
+		var options = new DialogOptions
+			{
+				CloseOnEscapeKey = true
+			};
+		var parameters = new DialogParameters();
+		var dialog = DialogService.Show<NewAlbumDialog>("Submit new album", parameters, options);
+		dialog.Result.ContinueWith(async task =>
+		{
+			if (task.Result.Cancelled) return;
+			var success = (bool)task.Result.Data;
+			if (success)
+			{
+				await OnInitializedAsync();
+			}
+		});
+	}
+	private void ToggleAddSong()
+	{
+		showAddSong = !showAddSong;
+	}
+	private async Task AddSong()
+	{
+		using var context = DbFactory.CreateDbContext();
+		if (_newSongName != null)
+		{
+			List<Song> albumSongs = SongService.GetSongsFromAlbum(expandedAlbumId);
+			if (albumSongs.Any(s => s.SongPosition == _newSongPos))
+			{
+				showPosError = true;
+				return;
+			}
+			Song newSong = new Song
+			{
+				SongName = _newSongName,
+				SongPosition = _newSongPos,
+				AlbumId = expandedAlbumId,
+				ArtistId = expandedArtistId
+			};
+			await context.Songs.AddAsync(newSong);
+			await context.SaveChangesAsync();
+			showPosError = false;
+		}
+	}
+	private async Task DeleteSong()
+	{
+		Song songToDelete = SongService.GetSongsFromAlbum(expandedAlbumId)
+			.FirstOrDefault(s => s.SongPosition == _deleteSongPos && s.SongName == _deleteSongName);
+		if (songToDelete != null)
+		{
+			var parameters = new DialogParameters<ConfirmationDialog>();
+			parameters.Add(x => x.ContentText, "Are you sure you want to delete this song?");
+			var dialog = DialogService.Show<ConfirmationDialog>("Confirm Delete", parameters);
+			var result = await dialog.Result;
+			if (!result.Cancelled)
+			{
+				await SongService.DeleteSongAsync(songToDelete.SongId);
+				StateHasChanged();
+				showDelError = false;
+			}
+		}
+		else
+		{
+			showDelError = true;
+		}
+	}
+}

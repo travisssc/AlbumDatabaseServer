@@ -1,0 +1,82 @@
+﻿@inherits LayoutComponentBase
+
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<PageTitle>AlbumDatabaseServer</PageTitle>
+
+<MudLayout>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        Album Collection Database
+        <MudSpacer></MudSpacer>
+        <LoginDisplay />
+        <a href="https://docs.microsoft.com/aspnet/" target="_blank" style="margin-left: 20px;">About</a>
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen">
+        <NavMenu/>
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+<style>
+    .transparent-container {
+        background-color: transparent;
+    }
+</style>
+
+<MudThemeProvider Theme="@customTheme" />
+
+@code {
+    bool _drawerOpen = true;
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+
+    MudTheme customTheme = new MudTheme()
+    {
+        Palette = new PaletteDark()
+        {
+            Background = "000000",
+            Primary = "FFFFFF",
+            Secondary = "212121",
+            Tertiary = "535353",
+            TextPrimary = "FFFFFF",
+            Surface = "121212",
+            DrawerBackground = "121212",
+            DrawerText = "FFFFFF",
+            AppbarBackground = "121212",
+            AppbarText = "FFFFFF",
+            TableHover = "212121",
+            Success =  "0066ff",
+            
+        },
+        Typography = new Typography()
+        {
+            Default = new Default()
+            {
+                FontFamily = new[] { "Circular Std Black", "sans-serif" }
+            },
+        }
+    };
+
+}
+@* <div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4 auth">
+            <LoginDisplay />
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div> *@
