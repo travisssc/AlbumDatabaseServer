@@ -1,0 +1,56 @@
+﻿@using AlbumDatabaseServer.Data
+<style>
+	.album-container {
+		position: relative;
+	}
+	.album-container:hover .album-cover {
+		filter: blur(5px);
+	}
+
+	.album-container:hover .album-menu {
+		opacity: 1;
+	}
+</style>
+<div class="album-container">
+	@if (!string.IsNullOrEmpty(Album.AlbumCover))
+	{
+		<MudCard Class="album-card rounded-lg">
+			<MudCardContent Class="album-card-content pa-0 rounded-lg">
+				<MudCardMedia Image="@Album.AlbumCover" Class="album-cover"/>
+					<div class="album-menu">
+						<MudIconButton Icon="@Icons.Material.Filled.Add" />
+						<MudIconButton Icon="@Icons.Material.Filled.Favorite" />
+						<MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" />
+					</div>
+				<div class="album-info">
+					@if (!string.IsNullOrEmpty(Album.Name))
+					{
+						<MudText Typo="Typo.subtitle1" Class="album-title">@Album.Name</MudText>
+					}
+					else
+					{
+						<MudText Color="Color.Error">Album name is missing!</MudText>
+					}
+					@if (Album.Artist != null && !string.IsNullOrEmpty(Album.Artist.ArtistName))
+					{
+						<MudText Typo="Typo.body2" Class="album-artist">@Album.Artist.ArtistName</MudText>
+					}
+					else
+					{
+						<MudText Color="Color.Error">Artist name is missing!</MudText>
+					}
+				</div>
+			</MudCardContent>
+		</MudCard>
+	}
+	else
+	{
+		<MudText Color="Color.Error">Album cover is missing!</MudText>
+	}
+</div>
+
+
+@code {
+	[Parameter]
+	public Album Album { get; set; }
+}

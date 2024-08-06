@@ -1,9 +1,12 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
+@using AlbumDatabaseServer.Data
+@inject AlbumService AlbumService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@using AlbumDatabaseServer.Components
 
 <PageTitle>Index</PageTitle>
-<MudContainer >
+<MudContainer>
 	<MudStack Class="pa-16">
 		<MudGrid>
 			<MudSpacer/>
@@ -20,13 +23,33 @@
 			</MudText>
 			<MudSpacer/>
 		</MudGrid>
+		<MudText Class="pt-16">New releases</MudText>
+			<MudGrid Justify="Justify.Center" Class="pa-6">
+				@if (newAlbums == null)
+				{
+					<MudText>Loading...</MudText>
+				}
+				else if (!newAlbums.Any())
+				{
+					<MudText>No new releases, check back later!</MudText>
+				}
+				else
+				{
+					@foreach (var album in newAlbums)
+					{
+						<MudItem>
+							<AlbumComponent Album="@album" />
+						</MudItem>
+					}
+				}
+			</MudGrid>
 	</MudStack>
 </MudContainer>
 
 @code {
 	private bool isUserLoggedIn;
 	private string username;
-
+	private List<Album> newAlbums;
 	protected override async Task OnInitializedAsync()
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -36,6 +59,7 @@
 		{
 			username = user.Identity.Name;
 		}
+		newAlbums = await Task.Run(() => AlbumService.GetNewReleases());
 	}
 }
 

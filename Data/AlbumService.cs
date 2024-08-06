@@ -41,4 +41,14 @@ public class AlbumService
 		await LoadAlbumsAsync();
 	}
 	public void NotifyStateChanged() => AlbumsChanged?.Invoke(this, EventArgs.Empty);
+	public List<Album> GetNewReleases()
+	{
+        using var context = _dbFactory.CreateDbContext();
+        var thresholdNew = DateTime.UtcNow.AddMonths(-3);	// threshold for new qualification (past 3 months)
+		return context.Albums
+			.Include(a => a.Artist)
+			.Where(a => a.ReleaseDate >= thresholdNew)
+			.OrderByDescending(a => a.ReleaseDate)
+			.ToList();
+	}
 }

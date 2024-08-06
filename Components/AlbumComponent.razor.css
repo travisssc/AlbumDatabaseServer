@@ -1,0 +1,71 @@
+﻿
+
+::deep .album-card {
+    width: 200px;
+    height: 270px;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+::deep .album-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+::deep .album-cover {
+    width: 100%;
+    height: 200px;
+    margin: 0;
+    padding: 0;
+    object-fit: cover;
+    transition: filter 0.3s ease;
+}
+
+::deep .album-info {
+    padding: 8px;
+    flex: 0 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+
+::deep .album-title, ::deep .album-artist {
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis (...) */
+    display: block;
+    width: 100%; /* Ensure it takes the full width */
+}
+
+::deep .album-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 210px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+}
+
+::deep .album-menu .mud-icon-button {
+    color:white;
+}
+
+::deep .album-container:hover .album-cover {
+    filter: blur(5px);
+}
+
+::deep .album-container:hover .album-menu {
+    opacity: 1;
+}
