@@ -1,0 +1,53 @@
+﻿.carousel-container {
+    width: 1050px;
+    margin-right: 50px;
+    margin-left: 25px;
+    position: relative;
+}
+@media screen and (max-width: 768px) {
+    .carousel-container {
+        width: 80%;
+    }
+}
+@media screen and (max-width: 1024px) {
+    .carousel-container {
+        width: 90%;
+    }
+}
+@media screen and (max-width: 1600px) {
+    .carousel-container {
+        width: 90%;
+    }
+}
+.carousel-container .carousel-inner {
+    overflow: hidden;
+}
+.carousel-container .track {
+    display: inline-flex;
+    transition: transform 0.3s;
+}
+.carousel-container .card-container {
+    padding-right: 15px;
+}
+.nav button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+.nav .prev.show {
+    display: block;
+}
+.nav .prev {
+    left: -45px;
+    display: none;
+}
+.nav .next {
+    right: -51px;
+}
+.nav .next.hide {
+    display: none;
+}

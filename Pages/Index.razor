@@ -7,42 +7,40 @@
 
 <PageTitle>Index</PageTitle>
 <MudContainer>
-	<MudStack Class="pa-16">
+	<MudStack Class="pa-16 mt-2 rounded-lg" Style="background: linear-gradient(to bottom, #212121, #121212)">
 		<MudGrid>
-			<MudSpacer/>
-			
+			<MudSpacer />
 			<MudText>
 				@if (isUserLoggedIn)
 				{
-					<h1>Welcome back @username!</h1>
+					<h1>Welcome back,
+						<a href ="Identity/Account/Manage">@username!</a>
+					</h1>
 				}
 				else
 				{
 					<h1>Welcome! Please log in or register</h1>
 				}
 			</MudText>
-			<MudSpacer/>
+			<MudSpacer />
 		</MudGrid>
-		<MudText Class="pt-16">New releases</MudText>
-			<MudGrid Justify="Justify.Center" Class="pa-6">
-				@if (newAlbums == null)
-				{
-					<MudText>Loading...</MudText>
-				}
-				else if (!newAlbums.Any())
-				{
-					<MudText>No new releases, check back later!</MudText>
-				}
-				else
-				{
-					@foreach (var album in newAlbums)
-					{
-						<MudItem>
-							<AlbumComponent Album="@album" />
-						</MudItem>
-					}
-				}
-			</MudGrid>
+		<h2 class="pt-16 pb-4">New Releases</h2> 
+		@if (newAlbums == null)
+		{
+			<MudText>Loading...</MudText>
+		}
+		else if (!newAlbums.Any())
+		{
+			<MudText>No new releases, check back later!</MudText>
+		}
+		else
+		{
+			<Carousel Albums="newAlbums" />
+		}
+		<div class="video-container">
+			<h2 class="pt-16 pb-4">Artist Spotlight</h2>
+			<div id="youtube-video"></div>
+		</div>
 	</MudStack>
 </MudContainer>
 

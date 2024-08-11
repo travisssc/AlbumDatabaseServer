@@ -1,10 +1,30 @@
-﻿<div style="color-scheme:dark">
+﻿<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<div style="color-scheme:dark">
     <AuthorizeView>
         <Authorized>
-            <a href="Identity/Account/Manage">Hello, @context.User.Identity?.Name!</a>
-            <form method="post" action="Identity/Account/LogOut">
-                <button type="submit" class="nav-link btn btn-link">Log out</button>
-            </form>
+                <div class="profile-container">
+                    <button class="profile-button">
+                        <div class="profile-icon">
+                            <span class="material-symbols-outlined">
+                                account_circle
+                            </span>
+                        </div>
+                        @context.User.Identity?.Name
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="Identity/Account/Manage">Manage Account</a>
+					    <form method="post" action="Identity/Account/LogOut">
+						    <button type="submit" class="nav-link btn btn-link">Log out</button>
+					    </form>
+                    </div>
+                </div>
+                @*             <a href="Identity/Account/Manage">Hello, @context.User.Identity?.Name!</a>
+                *@            
+                @* <div class="item">
+                    <form method="post" action="Identity/Account/LogOut">
+                        <button type="submit" class="nav-link btn btn-link">Log out</button>
+                    </form>
+                </div> *@
         </Authorized>
         <NotAuthorized>
             <a href="Identity/Account/Register">Register</a>

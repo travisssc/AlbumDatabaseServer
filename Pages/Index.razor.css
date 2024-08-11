@@ -1,0 +1,30 @@
+﻿::deep #youtube-video iframe {
+    width: 800px;
+    height: 450px;
+    border-radius: 15px;
+    overflow: hidden;
+}
+@media screen and (max-width: 430) {
+    ::deep #youtube-video iframe {
+        width: 350px;
+        height: 197px;
+    }
+}
+@media screen and (max-width: 768px) {
+    ::deep #youtube-video iframe {
+        width: 500px;
+        height: 281px;
+    }
+}
+
+@media screen and (max-width: 1024px) {
+    ::deep #youtube-video iframe {
+        width: 90%;
+    }
+}
+
+@media screen and (max-width: 1600px) {
+    ::deep #youtube-video iframe {
+        width: 90%;
+    }
+}

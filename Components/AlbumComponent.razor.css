@@ -1,8 +1,7 @@
 ﻿
-
 ::deep .album-card {
-    width: 200px;
-    height: 270px;
+    width: 198px;
+    height: 267px;
     display: flex;
     flex-direction: column;
     margin: 0;

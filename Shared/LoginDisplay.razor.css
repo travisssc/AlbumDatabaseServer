@@ -1,0 +1,41 @@
+﻿.login-tray {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.profile-container {
+    color: #b3b3b3;
+    padding-right: 15px;
+    display: inline-block;
+}
+.profile-button .profile-icon {
+    transform: scale(1.4);
+    padding-right: 15px;
+    padding-top: 6px;
+}
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    z-index: 1;
+    background: #535353;
+    border-radius: 5px;
+    width: fit-content;
+}
+.dropdown-menu a, .dropdown-menu form button {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #b3b3b3;
+    border: none;
+    width: 100%;
+    text-align: left;
+    background: #535353;
+    border-radius: 5px;
+}
+.dropdown-menu a:hover, .dropdown-menu form button:hover {
+    background-color: #535353;
+    color: white;
+}
+.profile-container:hover .dropdown-menu {
+    display: block;
+}
