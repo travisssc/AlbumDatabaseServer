@@ -1,0 +1,36 @@
+﻿.result {
+    display: flex;
+}
+.result-info {
+    padding-left: 32px;
+}
+.result-name {
+    padding-bottom: 16px;
+}
+.result-year {
+    color: #535353;
+    padding-left: 16px;
+}
+.name-date {
+    display: flex;
+}
+.result-year:hover {
+    color: #434343;
+    cursor: pointer;
+}
+.result-divider {
+    border: 1px solid;
+    color: #212121;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+.link-album, .link-artist {
+    text-decoration: none;
+    color: inherit;
+    margin: 0px;
+    padding: 0px;
+}
+.link-album:hover, .link-artist:hover {
+    color: #b3b3b3;
+    cursor: pointer;
+}

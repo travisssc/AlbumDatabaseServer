@@ -1,0 +1,20 @@
+﻿.profile-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.profile-item {
+    padding-right: 30px;
+}
+.profile-item .edit-button {
+    background-color: #535353;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.profile-image {
+    transform-origin: center;
+    transform: scale(0.5);
+    overflow: hidden;
+    margin: -24px;
+}

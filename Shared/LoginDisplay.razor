@@ -1,9 +1,11 @@
-﻿<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+﻿@inject NavigationManager NavigationManager
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <div style="color-scheme:dark">
     <AuthorizeView>
         <Authorized>
                 <div class="profile-container">
-                    <button class="profile-button">
+                    <button class="profile-button" @onclick="NavToProfile">
                         <div class="profile-icon">
                             <span class="material-symbols-outlined">
                                 account_circle
@@ -33,6 +35,12 @@
         </NotAuthorized>
     </AuthorizeView>
 </div>
+@code {
+	private void NavToProfile()
+	{
+		NavigationManager.NavigateTo("/profile");
+	}
+}
     
 
 

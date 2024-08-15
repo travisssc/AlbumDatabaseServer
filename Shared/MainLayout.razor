@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <MudDialogProvider/>
@@ -8,36 +9,61 @@
 
 <MudLayout>
     <MudAppBar>
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        Album Collection Database
+@*         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+ *@        
+        <a href="/" style="color: #b3b3b3;">Album Collection Database</a>
         <MudSpacer></MudSpacer>
         <LoginDisplay />
         @* <a href="https://docs.microsoft.com/aspnet/" target="_blank" style="margin-left: 20px;">About</a> *@
-        <button class="item">
-            <span>
-                Albums
-            </span>
-        </button>
-        <button class="item">
-            <span>
-                Lists
-            </span>
-        </button>
-        <button class="item">
-            <span>
-                Members
-            </span>
-        </button>
-        <button class="item">
-            <span class="material-symbols-outlined">
-                queue_music
-            </span>
-            <span style="padding-left: 5px;">Your Queue</span>
-        </button>
+        <a href="/yourqueue" class="item">
+            <div style="display: flex; align-items: center;">
+                <span class="material-symbols-outlined">
+                    queue_music
+                </span>
+                <span style="padding-left: 5px;">Your Queue</span>
+            </div>
+        </a>
+        <a href="/albums" class="item">
+            Albums
+        </a>
+        <a href="/lists" class="item">
+            Lists
+        </a>
+        <a href="/members" class="item">
+            Members
+        </a>
+        @* <button class="search-button" @onclick="() => searchOpen = !searchOpen">
+            @if (searchOpen)
+            {
+                <span class="material-symbols-outlined" style="color: #b3b3b3;">
+                    close
+                </span>
+                <div class="search-box">
+                    <input type="text" class="input-search" placeholder=""></input>
+                </div>
+            }
+            else
+            {
+                <span class="material-symbols-outlined" style="color: #b3b3b3;">
+                    search
+                </span>
+            }
+        </button> *@
+        <div class="search-bar">
+            <input type="text" class="search-bar-input"
+                   placeholder="Looking for an album?" aria-label="search"
+                   @bind="_searchString" @onkeyup="HandleSearchKeyUp" />
+            <button class="search-bar-submit" aria-label="submit search">
+				<span class="material-symbols-outlined">
+					search
+				</span>
+            </button>
+        </div>
+        <a href="/fetchdata" class="item">Admin view</a>
     </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen">
+@*     <MudDrawer @bind-Open="@_drawerOpen">
         <NavMenu/>
-    </MudDrawer>
+    </MudDrawer> *@
     <MudMainContent>
         @Body
     </MudMainContent>
@@ -55,11 +81,24 @@
 <MudThemeProvider Theme="@customTheme" />
 
 @code {
+    private bool searchOpen = false;
     bool _drawerOpen = true;
+    private string _searchString = "";
+    private void HandleSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrEmpty(_searchString))
+        {
+            NavigationManager.NavigateTo($"/search/{_searchString}");
+        }
+    }
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
     }
+    private void NavigateTo(string route)
+	{
+		NavigationManager.NavigateTo(route);
+	}
 
 
     MudTheme customTheme = new MudTheme()
