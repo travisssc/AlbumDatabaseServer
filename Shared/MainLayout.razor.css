@@ -134,3 +134,19 @@ body {
     background: #212121;
     width: 100%; 
 }
+.logo-image {
+    transform-origin: center;
+    max-height: 60px;
+    overflow: hidden;
+    width: auto;
+    height: auto;
+}
+.logo-text {
+    color: white;
+    padding-left: 8px;
+}
+.logo-container {
+    display: flex;
+    align-items: center;
+    align
+}

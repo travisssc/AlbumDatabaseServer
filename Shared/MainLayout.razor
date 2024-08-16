@@ -11,7 +11,12 @@
     <MudAppBar>
 @*         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
  *@        
-        <a href="/" style="color: #b3b3b3;">Album Collection Database</a>
+        <a href="/" style="color: #b3b3b3;">
+            <div class="logo-container">
+                <img src="@logoUrl" class="logo-image" />
+                <h1 class="logo-text">waveformd</h1>
+            </div>
+        </a>
         <MudSpacer></MudSpacer>
         <LoginDisplay />
         @* <a href="https://docs.microsoft.com/aspnet/" target="_blank" style="margin-left: 20px;">About</a> *@
@@ -84,6 +89,7 @@
     private bool searchOpen = false;
     bool _drawerOpen = true;
     private string _searchString = "";
+    private string logoUrl = "logos/waveformd-logo.png";
     private void HandleSearchKeyUp(KeyboardEventArgs e)
     {
         if (e.Key == "Enter" && !string.IsNullOrEmpty(_searchString))
