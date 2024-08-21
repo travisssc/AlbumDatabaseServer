@@ -1,0 +1,97 @@
+﻿.album-card {
+    background-color: #121212;
+    border-radius: 8px;
+    margin-top: 8px;
+}
+.card-content {
+    padding: 64px;
+    display: flex;
+}
+.album-cover {
+    width: auto;
+    height: auto;
+}
+.album-text-info {
+    padding-left: 48px;
+}
+.album-name-date {
+    font-size: 150%;
+    display: flex;
+    justify-content: flex-start;
+    max-height: fit-content;
+}
+.artist-genres {
+    display: flex;
+}
+.album-date {
+    padding-left: 16px;
+    padding-top: 18px;
+    color: #535353;
+}
+.genres {
+    padding-left: 16px;
+}
+.tracks-and-ufunctions {
+    padding-top: 16px;
+    display: flex;
+    width: 100%;
+}
+.tracks {
+    padding-left: 24px;
+    max-width: 50%;
+}
+.ufunctions {
+    margin-left: 24px;
+    border-radius: 8px;
+    border: 3px solid #212121;
+    display: flex;
+    color: #b3b3b3;
+    display: block;
+    align-items: flex-start;
+}
+.button-functions {
+    display: flex;
+    align-items: center;
+}
+.icon {
+    font-size: 48px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 16px;
+    color: #b3b3b3;
+    transition: color 0.2s ease;
+}
+.listen.active {
+    color: #3ec945;
+    font-variation-settings: 'FILL' 1;
+}
+.fav.active {
+    color: #d43b3b;
+    font-variation-settings: 'FILL' 1;
+}
+.q.active {
+    color: #3BADE1;
+    font-variation-settings: 'FILL' 1;
+}
+.function-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.button-text {
+    padding-top: 2px;
+    transition: color 0.1s ease;
+}
+.function-button:hover .button-text {
+    color: #FFFFFF;
+}
+.rating-container {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top: solid 3px #212121;
+    border-bottom: solid 3px #212121;
+}

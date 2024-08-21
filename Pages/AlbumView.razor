@@ -1,0 +1,246 @@
+﻿@page "/albums/{artistName}/{albumName}"
+@using AlbumDatabaseServer.Data
+@inject AlbumService AlbumService
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inherits MainLayout
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+@if (album == null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudContainer>
+        <div class="album-card">
+            <div class="card-content">
+                <div class="album-cover">
+                    <MudImage Src="@album.AlbumCover" Alt="@album.Name" Class="rounded-lg" />
+                </div>
+                <div class="album-text-info">
+                    <div class="album-name-date">
+                        <div class="album-name">
+                            <h1>@album.Name</h1>
+                        </div>
+                        <div class="album-date">
+                            <h3>@album.ReleaseDate.ToShortDateString()</h3>
+                        </div>
+                    </div>
+                    <div class="artist-genres">
+                        <div class="artist-name">
+                            <h1>@album.Artist.ArtistName</h1>
+                        </div>
+                        <div class="genres">
+                            <MudChipSet>
+                                @foreach (var genre in album.AlbumGenres)
+                                {
+                                    var style = $"background: {GetGenreGradient(genre.Genre.Name)};";
+                                    <MudChip Style="@style" Text="@genre.Genre.Name"></MudChip>
+                                }
+                            </MudChipSet>
+                        </div>
+                    </div>
+                    <div class="tracks-and-ufunctions">
+						<ol class="tracks">
+							@foreach (var song in album.Songs)
+							{
+								<li>@song.SongName</li>
+							}
+						</ol>
+                        <div class="ufunctions">
+                            <div class="button-functions">
+                                <button class="function-button"
+                                        @onclick="ToggleListen"
+                                        @onmouseover="OnListenMouseOver"
+                                        @onmouseout="OnListenMouseOut">
+                                    <span class="material-symbols-outlined icon listen @(isListened ? "active" : "")">
+                                        album
+                                    </span>
+                                    <subtitle1 class="button-text">@hoverListen</subtitle1>
+                                </button>
+                                <button class="function-button"
+                                        @onclick="ToggleFavorite"
+                                        @onmouseover="OnFavoriteMouseOver"
+                                        @onmouseout="OnFavoriteMouseOut">
+                                    <span class="material-symbols-outlined icon fav @(isFavorited ? "active" : "")">
+                                        favorite
+                                    </span>
+                                    <subtitle1 class="button-text">@hoverFavorite</subtitle1>
+                                </button>
+                                <button class="function-button"
+                                        @onclick="ToggleQueue"
+                                        @onmouseover="OnQueueMouseOver"
+                                        @onmouseout="OnQueueMouseOut">
+                                    <span class="material-symbols-outlined icon q @(isQueued ? "active" : "")">
+                                        @(isQueued ? "playlist_add_check_circle" : "playlist_add_circle")
+                                    </span>
+                                    <subtitle1 class="button-text">@hoverQueue</subtitle1>
+                                </button>
+                            </div>
+                            <div class="rating-container">
+                                <MudRating @bind-SelectedValue="currentRating" Size="Size.Large" Color="Color.Success" />
+                            </div>
+                            
+                        </div>
+                    </div>
+                        
+                </div>
+            </div>
+        </div>
+    </MudContainer>
+}
+
+@code {
+    [Parameter]
+    public string artistName { get; set; }
+    [Parameter]
+    public string albumName { get; set; }
+    private Album album;
+    private bool isListened = false;
+    private bool isFavorited = false;
+    private bool isQueued = false;
+    private string userName;
+    private string hoverListen;
+    private string hoverFavorite;
+    private string hoverQueue;
+    private int _currentRating = 0;
+    private int currentRating
+    {
+        get => _currentRating;
+        set
+        {
+            if (_currentRating != value)
+            {
+                _currentRating = value;
+                SubmitRating(_currentRating);
+            }
+        }
+    }
+    private string reviewText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var decodedArtistName = Uri.UnescapeDataString(artistName);
+        var decodedAlbumName = Uri.UnescapeDataString(albumName);
+        await LoadAlbumDetails(decodedArtistName, decodedAlbumName);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            userName = user.Identity.Name;
+            if (album != null)
+            {
+                isListened = await UserService.IsAlbumListenedAsync(album.AlbumId, userName);
+                isFavorited = await UserService.IsAlbumFavoritedAsync(album.AlbumId, userName);
+                isQueued = await UserService.IsAlbumQueuedAsync(album.AlbumId, userName);
+                var existingRating = await UserService.GetRatingAsync(album.AlbumId, userName);
+                if (existingRating != null)
+                {
+                    currentRating = existingRating.Rating;
+                }
+                hoverListen = isListened ? "Listened" : "Listen";
+                hoverFavorite = isFavorited ? "Favorited" : "Favorite";
+                hoverQueue = isQueued ? "In Queue" : "Queue";
+            }
+        }
+    }
+
+    private async Task LoadAlbumDetails(string decodedArtistName, string decodedAlbumName)
+    {
+        if (!string.IsNullOrEmpty(decodedArtistName) && !string.IsNullOrEmpty(decodedAlbumName))
+        {
+            album = AlbumService.Albums
+                .FirstOrDefault(a => a.Name.Equals(decodedAlbumName, StringComparison.OrdinalIgnoreCase) &&
+                                     a.Artist.ArtistName.Equals(decodedArtistName, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private async Task ToggleListen()
+    {
+        if (!string.IsNullOrEmpty(userName) && album != null)
+        {
+            await UserService.ToggleListenAsync(album.AlbumId, userName);
+            isListened = !isListened;
+            hoverListen = isListened ? "Listened" : "Listen";
+        }
+    }
+
+    private void OnListenMouseOver()
+    {
+        if (isListened)
+        {
+            hoverListen = "Remove";
+        }
+    }
+
+    private void OnListenMouseOut()
+    {
+        if (isListened)
+        {
+            hoverListen = "Listened";
+        }
+    }
+    private async Task ToggleFavorite()
+    {
+        if (!string.IsNullOrEmpty(userName) && album != null)
+        {
+            await UserService.ToggleFavoriteAsync(album.AlbumId, userName);
+            isFavorited = !isFavorited;
+            hoverFavorite = isFavorited ? "Favorited" : "Favorite";
+        }
+    }
+
+    private void OnFavoriteMouseOver()
+    {
+        if (isFavorited)
+        {
+            hoverFavorite = "Remove";
+        }
+    }
+
+    private void OnFavoriteMouseOut()
+    {
+        if (isFavorited)
+        {
+            hoverFavorite = "Favorited";
+        }
+    }
+    private async Task ToggleQueue()
+    {
+        if (!string.IsNullOrEmpty(userName) && album != null)
+        {
+            await UserService.ToggleQueueAsync(album.AlbumId, userName);
+            isQueued = !isQueued;
+            hoverQueue = isQueued ? "In Queue" : "Queue";
+        }
+    }
+
+    private void OnQueueMouseOver()
+    {
+        if (isQueued)
+        {
+            hoverQueue = "Remove";
+        }
+    }
+
+    private void OnQueueMouseOut()
+    {
+        if (isQueued)
+        {
+            hoverQueue = "In Queue";
+        }
+    }
+    private async Task SubmitRating(int rating)
+    {
+        if (rating == 0)
+        {
+            await UserService.RemoveRatingAsync(album.AlbumId, userName);
+        }
+        if (rating > 0 && !string.IsNullOrEmpty(userName) && album != null)
+        {
+            await UserService.SubmitAlbumRatingAsync(album.AlbumId, userName, rating, reviewText);
+        }
+    }
+}

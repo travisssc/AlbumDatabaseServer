@@ -4,6 +4,7 @@
 @inject IWebHostEnvironment _env
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject AlbumService AlbumService
+@inherits MainLayout
 
 <MudDialog Style="background-color: #212121">
 	<DialogContent>
@@ -31,7 +32,9 @@
 				{
 					@foreach (var genre in genres)
 					{
-						<MudChip Color="Color.Success" Text="@genre.Name" Value="@genre" />
+						var style = $"background: {GetGenreGradient(genre.Name)};";
+						<MudChip Style="@style" 
+							Text="@genre.Name" Value="@genre" />
 					}
 				}
 			</MudChipSet>

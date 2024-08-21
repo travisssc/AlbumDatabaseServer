@@ -86,7 +86,6 @@
 <MudThemeProvider Theme="@customTheme" />
 
 @code {
-    private bool searchOpen = false;
     bool _drawerOpen = true;
     private string _searchString = "";
     private string logoUrl = "logos/waveformd-logo.png";
@@ -122,7 +121,7 @@
             AppbarBackground = "121212",
             AppbarText = "FFFFFF",
             TableHover = "212121",
-            Success =  "0066ff",
+            Success = "3BADE1",
             
         },
         Typography = new Typography()
@@ -133,21 +132,41 @@
             },
         }
     };
+    protected Dictionary<string, string> GenreGradients = new Dictionary<string, string>
+    {
+        { "Rock", "linear-gradient(45deg, #302B2B, #B23A3A)" },
+        { "Pop", "linear-gradient(45deg, #ba7fdb, #74d9ed)" },
+        { "R&B", "linear-gradient(45deg, #482175, #29298a);"},
+        { "Electronic", "linear-gradient(45deg, #18c9c9, #5fd640)"},
+        { "Hip Hop", "linear-gradient(45deg, #E5B800, #8B6D42, #292929)" },
+        { "Country", "linear-gradient(45deg, #8B4513, #FFD700);"},
+        { "Jazz", "linear-gradient(45deg, #23236e, #551b80);"},
+        { "Classical", "linear-gradient(45deg, #FFFFF0, #800020);"},
+        { "World", "linear-gradient(45deg, #40E0D0, #000080);"},
+        { "Reggae", "linear-gradient(45deg, #4F8F4F, #D4B050, #A02A2A);" },
+        { "Latin", "linear-gradient(45deg, #FF4500, #FFD700);"},
+        { "Alternative", "linear-gradient(45deg, #9B59B6, #26A69A);"},
+        { "Indie", "linear-gradient(45deg, #48BEE5, #FF6347);"},
+        { "Blues", "linear-gradient(45deg, #2b45ad, #2d2bad);"},
+        { "Metal", "linear-gradient(45deg, #000000, #434545);"},
+        { "Experimental", "linear-gradient(45deg, #8A2BE2, #C0C0C0);"},
+        { "Punk", "linear-gradient(45deg, #000000, #FF69B4);"},
+        { "Folk", "linear-gradient(45deg, #8B4513, #6B8E23);"},
+        { "Instrumental", "linear-gradient(45deg, #87CEEB, #708090);"},
+        { "Chill", " linear-gradient(45deg, #ADD8E6, #40E0D0);"}
+        
+
+
+        // Add more genres and their corresponding gradients here
+    };
+
+    protected string GetGenreGradient(string genre)
+    {
+        if (GenreGradients.TryGetValue(genre, out var gradient))
+        {
+            return gradient;
+        }
+        return "linear-gradient(45deg, #DDD, #EEE)"; // Default gradient if genre is not found
+    }
 
 }
-@* <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4 auth">
-            <LoginDisplay />
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div> *@

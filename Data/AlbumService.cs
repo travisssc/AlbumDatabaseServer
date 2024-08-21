@@ -55,11 +55,12 @@ public class AlbumService
     public decimal GetAverageRating(int albumId)
     {
         using var context = _dbFactory.CreateDbContext();
-		return context.AlbumRatings
+		var ratings = context.AlbumRatings
 			.Where(r => r.AlbumId == albumId)
-			.Average(r => r.Rating);
+			.Select(r => (decimal)r.Rating);
+		return ratings.Any() ? ratings.Average() : 0M;
 	}
-    public async Task AddTestRating(int albumId, string userName, decimal rating, string review = "")
+    public async Task AddTestRating(int albumId, string userName, int rating, string review = "")
     {
         using var context = _dbFactory.CreateDbContext();
 

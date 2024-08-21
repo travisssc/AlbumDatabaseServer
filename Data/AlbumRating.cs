@@ -19,8 +19,8 @@ namespace AlbumDatabaseServer.Data
 		public Album Album { get; set; }
 
 		[Required]
-		[Range(0.5, 5.0)]
-		public decimal Rating { get; set; }
+		[Range(1, 5)]
+		public int Rating { get; set; }
 
 		public string Review { get; set; } = string.Empty;
 		public DateTime DateRated { get; set; }

@@ -27,6 +27,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<AlbumService>();
 builder.Services.AddSingleton<SongService>();
+builder.Services.AddScoped<UserService>();
 
 
 var app = builder.Build();

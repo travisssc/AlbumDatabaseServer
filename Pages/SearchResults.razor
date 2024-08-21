@@ -2,7 +2,7 @@
 @using AlbumDatabaseServer.Data
 @inject AlbumService AlbumService
 @inject NavigationManager NavigationManager
-
+@inherits MainLayout
 
 @if (searchResults == null)
 {
@@ -32,11 +32,12 @@ else
         {
             <div class="result">
                 <button class="view-album">
-                    <MudImage Src="@result.AlbumCover" Alt="@result.Name" Width="200" Class="rounded-lg" />
+                    <MudImage Src="@result.AlbumCover" Alt="@result.Name" Width="200" Class="rounded-lg"
+                              @onclick="()=> HandleNavigation(result)"/>
                 </button>
                 <div class="result-info">
                     <div class="name-date">
-                        <a class="link-album">
+                        <a class="link-album" @onclick="() => HandleNavigation(result)">
                             <h1 class="result-name">@result.Name</h1>
                         </a>
                         <a class="link-year">
@@ -49,39 +50,14 @@ else
                     <MudChipSet Class="pt-16">
                         @foreach (var albumGenre in result.AlbumGenres)
                         {
-                            <MudChip Text="@albumGenre.Genre.Name"></MudChip>
+                            var style = $"background: {GetGenreGradient(albumGenre.Genre.Name)};";
+                            <MudChip Style="@style" Text="@albumGenre.Genre.Name"></MudChip>
                         }
                     </MudChipSet>
                 </div>
             </div>
             <hr class="result-divider"/>
         }
-        @* <MudDataGrid T="Album" Items="searchResults" SortMode="SortMode.None" QuickFilter="_ => true"
-                     Style="height: 100%; width: 100%;" ColumnResizeMode="ResizeMode.Column" Hover="true">
-            <Columns>
-                <PropertyColumn Property="x => x.AlbumCover" Title="">
-                    <CellTemplate>
-                        <MudImage Src="@context.Item.AlbumCover" Alt="@context.Item.Name" Width="100" Class="rounded-lg" />
-                    </CellTemplate>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.Name" Title="Name" />
-                <PropertyColumn Property="x => x.Artist.ArtistName" Title="Artist" />
-                <PropertyColumn Property="x => x.ReleaseDate.ToShortDateString()" Title="Released" />
-                <TemplateColumn Title="Genres">
-                    <CellTemplate>
-                        @foreach (var albumGenre in context.Item.AlbumGenres)
-                        {
-                            @albumGenre.Genre.Name
-                            @if (albumGenre != context.Item.AlbumGenres.Last())
-                            {
-                                <span>, </span>
-                            }
-                        }
-                    </CellTemplate>
-                </TemplateColumn>
-            </Columns>
-        </MudDataGrid> *@
-
     </MudContainer>
 }
 
@@ -91,7 +67,6 @@ else
     [Parameter]
     public string searchQuery { get; set; }
     private List<Album> searchResults;
-
     protected override async Task OnInitializedAsync()
     {
         await LoadSearchResults();
@@ -109,5 +84,11 @@ else
                                 album.Artist.ArtistName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
+    }
+    private void HandleNavigation(Album album)
+    {
+        var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
+        var encodedAlbumName = Uri.EscapeDataString(album.Name);
+        NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
     }
 }
