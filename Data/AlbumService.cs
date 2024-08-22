@@ -60,28 +60,4 @@ public class AlbumService
 			.Select(r => (decimal)r.Rating);
 		return ratings.Any() ? ratings.Average() : 0M;
 	}
-    public async Task AddTestRating(int albumId, string userName, int rating, string review = "")
-    {
-        using var context = _dbFactory.CreateDbContext();
-
-        var user = context.Users.FirstOrDefault(u => u.UserName == userName);
-        if (user == null)
-        {
-            // Handle case where user does not exist
-            return;
-        }
-
-		var albumRating = new AlbumRating
-		{
-			AlbumId = albumId,
-			UserName = userName,
-			User = user,
-			Rating = rating,
-			Review = review,
-			DateRated = DateTime.Now.ToUniversalTime()
-		};
-
-        context.AlbumRatings.Add(albumRating);
-        await context.SaveChangesAsync();
-    }
 }

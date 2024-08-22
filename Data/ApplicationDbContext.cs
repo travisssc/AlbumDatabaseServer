@@ -37,5 +37,6 @@ namespace AlbumDatabaseServer.Data
         public DbSet<AlbumRating> AlbumRatings { get; set; }
         public DbSet<FavoriteAlbums> FavoriteAlbums { get; set; }
         public DbSet<ListenedAlbums> ListenedAlbums { get; set; }
+        public DbSet<AlbumReview> AlbumReviews { get; set; }
     }
 }

@@ -16,21 +16,14 @@ else
     <MudContainer>
         <div class="album-card">
             <div class="card-content">
-                <div class="album-cover">
-                    <MudImage Src="@album.AlbumCover" Alt="@album.Name" Class="rounded-lg" />
-                </div>
+                <img src="@album.AlbumCover" alt="@album.Name" class="album-cover" />
                 <div class="album-text-info">
-                    <div class="album-name-date">
-                        <div class="album-name">
-                            <h1>@album.Name</h1>
-                        </div>
-                        <div class="album-date">
-                            <h3>@album.ReleaseDate.ToShortDateString()</h3>
-                        </div>
+                    <div class="album-name">
+                        <h1>@album.Name</h1>
                     </div>
                     <div class="artist-genres">
                         <div class="artist-name">
-                            <h1>@album.Artist.ArtistName</h1>
+                            <h2>@album.Artist.ArtistName</h2>
                         </div>
                         <div class="genres">
                             <MudChipSet>
@@ -42,13 +35,19 @@ else
                             </MudChipSet>
                         </div>
                     </div>
+                    <div class="album-date">
+                        <h3>@album.ReleaseDate.ToShortDateString()</h3>
+                    </div>
                     <div class="tracks-and-ufunctions">
-						<ol class="tracks">
-							@foreach (var song in album.Songs)
-							{
-								<li>@song.SongName</li>
-							}
-						</ol>
+                        <div class="tracklist">
+                            <h3>Track list</h3>
+                            <ol class="tracks">
+                                @foreach (var song in album.Songs)
+                                {
+                                    <li class="track">@song.SongName</li>
+                                }
+                            </ol>
+                        </div>
                         <div class="ufunctions">
                             <div class="button-functions">
                                 <button class="function-button"
@@ -82,7 +81,11 @@ else
                             <div class="rating-container">
                                 <MudRating @bind-SelectedValue="currentRating" Size="Size.Large" Color="Color.Success" />
                             </div>
-                            
+                            <textarea class="review-box" type="text" @bind="_reviewText" 
+                                placeholder="Add a review..."/>
+                            <div class="save-area">
+                                <button class="save-review-button" @onclick="SubmitReview">Save</button>
+                            </div>
                         </div>
                     </div>
                         
@@ -105,6 +108,8 @@ else
     private string hoverListen;
     private string hoverFavorite;
     private string hoverQueue;
+    private string _reviewText = "";
+    private bool isReviewed = false;
     private int _currentRating = 0;
     private int currentRating
     {
@@ -118,7 +123,6 @@ else
             }
         }
     }
-    private string reviewText = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -136,9 +140,15 @@ else
                 isFavorited = await UserService.IsAlbumFavoritedAsync(album.AlbumId, userName);
                 isQueued = await UserService.IsAlbumQueuedAsync(album.AlbumId, userName);
                 var existingRating = await UserService.GetRatingAsync(album.AlbumId, userName);
+                var existingReview = await UserService.GetReviewAsync(album.AlbumId, userName);
                 if (existingRating != null)
                 {
                     currentRating = existingRating.Rating;
+                }
+                if (existingReview != null)
+                {
+                    _reviewText = existingReview.ReviewText;
+                    isReviewed = !string.IsNullOrEmpty(_reviewText);
                 }
                 hoverListen = isListened ? "Listened" : "Listen";
                 hoverFavorite = isFavorited ? "Favorited" : "Favorite";
@@ -240,7 +250,19 @@ else
         }
         if (rating > 0 && !string.IsNullOrEmpty(userName) && album != null)
         {
-            await UserService.SubmitAlbumRatingAsync(album.AlbumId, userName, rating, reviewText);
+            await UserService.SubmitAlbumRatingAsync(album.AlbumId, userName, rating, _reviewText);
         }
+    }
+    private async Task SubmitReview()
+    {
+        if (!string.IsNullOrEmpty(_reviewText) && !string.IsNullOrEmpty(userName))
+        {
+            await UserService.SubmitReviewAsync(album.AlbumId, userName, _reviewText);
+        }
+        else if (string.IsNullOrEmpty(_reviewText) && !string.IsNullOrEmpty(userName))
+        {
+
+            await UserService.RemoveReviewAsync(album.AlbumId, userName);
+		}
     }
 }

@@ -21,8 +21,6 @@ namespace AlbumDatabaseServer.Data
 		[Required]
 		[Range(1, 5)]
 		public int Rating { get; set; }
-
-		public string Review { get; set; } = string.Empty;
 		public DateTime DateRated { get; set; }
 	}
 }

@@ -8,24 +8,26 @@
     display: flex;
 }
 .album-cover {
-    width: auto;
+    width: 30vw;
     height: auto;
+    border-radius: 8px;
+    align-self: flex-start;
 }
+
 .album-text-info {
     padding-left: 48px;
 }
-.album-name-date {
-    font-size: 150%;
+.album-name {
+    font-size: 120%;
     display: flex;
     justify-content: flex-start;
     max-height: fit-content;
 }
 .artist-genres {
     display: flex;
+    align-items: center;
 }
 .album-date {
-    padding-left: 16px;
-    padding-top: 18px;
     color: #535353;
 }
 .genres {
@@ -36,18 +38,37 @@
     display: flex;
     width: 100%;
 }
+.tracklist {
+    display: flex;
+    flex-direction: column;
+    margin-right: 16px;
+}
 .tracks {
-    padding-left: 24px;
-    max-width: 50%;
+    padding-top: 8px;
+    padding-left: 32px;
+    margin-right: 0px;
+    padding-right: 24px;
+    overflow-y: scroll;
+    max-height: 40vh;
+    scrollbar-width: thin;
+}
+
+.track {
+    background-color: #212121;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    margin: 3px;
+    border-radius: 100vh;
 }
 .ufunctions {
-    margin-left: 24px;
     border-radius: 8px;
     border: 3px solid #212121;
     display: flex;
     color: #b3b3b3;
     display: block;
     align-items: flex-start;
+    justify-content: space-between;
+    height: 100%;
+    padding: 8px;
 }
 .button-functions {
     display: flex;
@@ -92,6 +113,29 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border-top: solid 3px #212121;
-    border-bottom: solid 3px #212121;
+    border-top: solid 2px #212121;
+    border-bottom: solid 2px #212121;
+}
+.review-box {
+    margin-top: 8px;
+    padding: 8px;
+    box-sizing: border-box;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    color: white;
+    resize: none;
+    background-color: #212121;
+    flex-grow: 1;
+}
+.save-area {
+    display: flex;
+    justify-content: flex-end;
+}
+.save-review-button {
+    padding: 6px 10px 6px 10px;
+    margin: 4px;
+    background-color: #3BADE1;
+    color: #121212;
+    border-radius: 10px;
 }

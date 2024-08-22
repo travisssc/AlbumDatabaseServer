@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace AlbumDatabaseServer.Data
 {
@@ -101,7 +103,14 @@ namespace AlbumDatabaseServer.Data
         public async Task<AlbumRating> GetRatingAsync(int albumId, string userName)
         {
             return await _context.AlbumRatings
-                .FirstOrDefaultAsync(r => r.AlbumId == albumId && r.UserName == userName);
+                .FirstOrDefaultAsync(r => r.AlbumId == albumId && r.UserName == userName)
+                ?? new AlbumRating
+                {
+                    AlbumId = albumId,
+                    UserName = userName,
+                    Rating = 0,
+                    DateRated = DateTime.UtcNow
+                };
         }
         public async Task SubmitAlbumRatingAsync(int albumId, string userName, int rating, string review)
         {
@@ -109,7 +118,6 @@ namespace AlbumDatabaseServer.Data
             if (albumRating != null)
             {
                 albumRating.Rating = rating;
-                albumRating.Review = review;
                 albumRating.DateRated = DateTime.UtcNow;
             }
             else
@@ -119,7 +127,6 @@ namespace AlbumDatabaseServer.Data
                     AlbumId = albumId,
                     UserName = userName,
                     Rating = rating,
-                    Review = review,
                     DateRated = DateTime.UtcNow
                 };
                 _context.AlbumRatings.Add(albumRating);
@@ -132,6 +139,55 @@ namespace AlbumDatabaseServer.Data
             if (albumRating != null)
             {
                 _context.AlbumRatings.Remove(albumRating);
+                await _context.SaveChangesAsync();
+            }
+        }
+        public async Task UpdateRatingAsync(AlbumRating rating)
+        {
+            _context.AlbumRatings.Update(rating);
+            await _context.SaveChangesAsync();
+        }
+
+        // REVIEW FUNCTIONS
+        public async Task<AlbumReview> GetReviewAsync(int albumId, string userName)
+        {
+            return await _context.AlbumReviews
+                .FirstOrDefaultAsync(r => r.AlbumId == albumId && r.UserName == userName)
+                ?? new AlbumReview
+                {
+                    AlbumId = albumId,
+                    UserName = userName,
+                    ReviewText = string.Empty,
+                    DateReviewed = DateTime.UtcNow
+                };
+        }
+        public async Task SubmitReviewAsync(int albumId, string userName, string reviewText)
+        {
+            var existingReview = await GetReviewAsync(albumId, userName);
+            if (!string.IsNullOrEmpty(existingReview.ReviewText))
+            {
+                existingReview.ReviewText = reviewText;
+                existingReview.DateReviewed = DateTime.UtcNow;
+            }
+            else
+            {
+                var newReview = new AlbumReview
+                {
+                    AlbumId = albumId,
+                    UserName = userName,
+                    ReviewText = reviewText,
+                    DateReviewed = DateTime.UtcNow
+                };
+                _context.AlbumReviews.Add(newReview);
+            }
+            await _context.SaveChangesAsync();
+        }
+        public async Task RemoveReviewAsync(int albumId, string userName)
+        {
+            var review = await GetReviewAsync(albumId, userName);
+            if (review != null)
+            {
+                _context.AlbumReviews.Remove(review);
                 await _context.SaveChangesAsync();
             }
         }

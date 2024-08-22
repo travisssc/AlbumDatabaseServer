@@ -3,6 +3,7 @@ using System;
 using AlbumDatabaseServer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AlbumDatabaseServer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240822014143_SeparateReviewAndRatingTables")]
+    partial class SeparateReviewAndRatingTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,40 +136,6 @@ namespace AlbumDatabaseServer.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("AlbumRatings");
-                });
-
-            modelBuilder.Entity("AlbumDatabaseServer.Data.AlbumReview", b =>
-                {
-                    b.Property<int>("ReviewId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReviewId"));
-
-                    b.Property<int>("AlbumId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("DateReviewed")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ReviewText")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("ReviewId");
-
-                    b.HasIndex("AlbumId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AlbumReviews");
                 });
 
             modelBuilder.Entity("AlbumDatabaseServer.Data.Artist", b =>
@@ -553,23 +522,6 @@ namespace AlbumDatabaseServer.Migrations
                 });
 
             modelBuilder.Entity("AlbumDatabaseServer.Data.AlbumRating", b =>
-                {
-                    b.HasOne("AlbumDatabaseServer.Data.Album", "Album")
-                        .WithMany()
-                        .HasForeignKey("AlbumId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Album");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("AlbumDatabaseServer.Data.AlbumReview", b =>
                 {
                     b.HasOne("AlbumDatabaseServer.Data.Album", "Album")
                         .WithMany()
