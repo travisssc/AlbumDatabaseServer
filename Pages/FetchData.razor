@@ -6,6 +6,7 @@
 @inject AlbumService AlbumService
 @inject SongService SongService
 
+<PageTitle>Admin view • Waveformd</PageTitle>
 @if (AlbumService.Albums.Count == 0)
 {
 	<MudProgressCircular Color="Color.Primary" Indeterminate="true" />

@@ -60,4 +60,10 @@ public class AlbumService
 			.Select(r => (decimal)r.Rating);
 		return ratings.Any() ? ratings.Average() : 0M;
 	}
+	public int GetRatingCount(int albumId)
+    {
+        using var context = _dbFactory.CreateDbContext();
+        return context.AlbumRatings
+            .Count(r => r.AlbumId == albumId);
+    }
 }

@@ -56,8 +56,12 @@
 .track {
     background-color: #212121;
     padding: 0.5rem 1rem 0.5rem 1rem;
-    margin: 3px;
-    border-radius: 100vh;
+    margin-bottom: 6px;
+    border-radius: 10px;
+}
+.user-plus-rating {
+    display: flex;
+    flex-direction: column;
 }
 .ufunctions {
     border-radius: 8px;
@@ -111,6 +115,7 @@
     margin-bottom: 4px;
     padding: 16px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     border-top: solid 2px #212121;

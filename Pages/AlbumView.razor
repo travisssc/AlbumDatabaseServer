@@ -4,9 +4,10 @@
 @inject UserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inherits MainLayout
+@inject ISnackbar Snackbar
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<PageTitle>@album.Name (@album.ReleaseDate.Year) by @album.Artist.ArtistName • Waveformd</PageTitle>
 @if (album == null)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -48,47 +49,50 @@ else
                                 }
                             </ol>
                         </div>
-                        <div class="ufunctions">
-                            <div class="button-functions">
-                                <button class="function-button"
-                                        @onclick="ToggleListen"
-                                        @onmouseover="OnListenMouseOver"
-                                        @onmouseout="OnListenMouseOut">
-                                    <span class="material-symbols-outlined icon listen @(isListened ? "active" : "")">
-                                        album
-                                    </span>
-                                    <subtitle1 class="button-text">@hoverListen</subtitle1>
-                                </button>
-                                <button class="function-button"
-                                        @onclick="ToggleFavorite"
-                                        @onmouseover="OnFavoriteMouseOver"
-                                        @onmouseout="OnFavoriteMouseOut">
-                                    <span class="material-symbols-outlined icon fav @(isFavorited ? "active" : "")">
-                                        favorite
-                                    </span>
-                                    <subtitle1 class="button-text">@hoverFavorite</subtitle1>
-                                </button>
-                                <button class="function-button"
-                                        @onclick="ToggleQueue"
-                                        @onmouseover="OnQueueMouseOver"
-                                        @onmouseout="OnQueueMouseOut">
-                                    <span class="material-symbols-outlined icon q @(isQueued ? "active" : "")">
-                                        @(isQueued ? "playlist_add_check_circle" : "playlist_add_circle")
-                                    </span>
-                                    <subtitle1 class="button-text">@hoverQueue</subtitle1>
-                                </button>
+                        <div class="user-plus-rating">
+                            <AlbumDatabaseServer.Components.AverageRating averageRating="averageRating" ratingCount="ratingCount" />
+                            <div class="ufunctions">
+                                <div class="button-functions">
+                                    <button class="function-button"
+                                            @onclick="ToggleListen"
+                                            @onmouseover="OnListenMouseOver"
+                                            @onmouseout="OnListenMouseOut">
+                                        <span class="material-symbols-outlined icon listen @(isListened ? "active" : "")">
+                                            album
+                                        </span>
+                                        <subtitle1 class="button-text">@hoverListen</subtitle1>
+                                    </button>
+                                    <button class="function-button"
+                                            @onclick="ToggleFavorite"
+                                            @onmouseover="OnFavoriteMouseOver"
+                                            @onmouseout="OnFavoriteMouseOut">
+                                        <span class="material-symbols-outlined icon fav @(isFavorited ? "active" : "")">
+                                            favorite
+                                        </span>
+                                        <subtitle1 class="button-text">@hoverFavorite</subtitle1>
+                                    </button>
+                                    <button class="function-button"
+                                            @onclick="ToggleQueue"
+                                            @onmouseover="OnQueueMouseOver"
+                                            @onmouseout="OnQueueMouseOut">
+                                        <span class="material-symbols-outlined icon q @(isQueued ? "active" : "")">
+                                            @(isQueued ? "playlist_add_check_circle" : "playlist_add_circle")
+                                        </span>
+                                        <subtitle1 class="button-text">@hoverQueue</subtitle1>
+                                    </button>
+                                </div>
+                                <div class="rating-container">
+                                    <subtitle1>@(isRated ? "Rated" : "Rate")</subtitle1>
+                                    <MudRating @bind-SelectedValue="currentRating" Size="Size.Large" Color="Color.Success" />
+                                </div>
+                                <textarea class="review-box" type="text" @bind="_reviewText"
+                                          placeholder="Add a review..." />
+                                <div class="save-area">
+                                    <button class="save-review-button" @onclick="SubmitReview">Save</button>
+                                </div>
                             </div>
-                            <div class="rating-container">
-                                <MudRating @bind-SelectedValue="currentRating" Size="Size.Large" Color="Color.Success" />
-                            </div>
-                            <textarea class="review-box" type="text" @bind="_reviewText" 
-                                placeholder="Add a review..."/>
-                            <div class="save-area">
-                                <button class="save-review-button" @onclick="SubmitReview">Save</button>
-                            </div>
-                        </div>
-                    </div>
-                        
+                        </div>    
+                    </div>  
                 </div>
             </div>
         </div>
@@ -110,7 +114,10 @@ else
     private string hoverQueue;
     private string _reviewText = "";
     private bool isReviewed = false;
+    private bool isRated = false;
     private int _currentRating = 0;
+    private decimal averageRating = 0;
+    private int ratingCount = 0;
     private int currentRating
     {
         get => _currentRating;
@@ -129,6 +136,8 @@ else
         var decodedArtistName = Uri.UnescapeDataString(artistName);
         var decodedAlbumName = Uri.UnescapeDataString(albumName);
         await LoadAlbumDetails(decodedArtistName, decodedAlbumName);
+        averageRating = Math.Round(AlbumService.GetAverageRating(album.AlbumId), 1);
+        ratingCount = AlbumService.GetRatingCount(album.AlbumId);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         if (user.Identity.IsAuthenticated)
@@ -144,6 +153,7 @@ else
                 if (existingRating != null)
                 {
                     currentRating = existingRating.Rating;
+                    isRated = true;
                 }
                 if (existingReview != null)
                 {
@@ -247,22 +257,27 @@ else
         if (rating == 0)
         {
             await UserService.RemoveRatingAsync(album.AlbumId, userName);
+            isRated = false;
         }
         if (rating > 0 && !string.IsNullOrEmpty(userName) && album != null)
         {
-            await UserService.SubmitAlbumRatingAsync(album.AlbumId, userName, rating, _reviewText);
+            await UserService.SubmitAlbumRatingAsync(album.AlbumId, userName, rating);
+            isRated = true;
         }
+        StateHasChanged();
     }
     private async Task SubmitReview()
     {
         if (!string.IsNullOrEmpty(_reviewText) && !string.IsNullOrEmpty(userName))
         {
             await UserService.SubmitReviewAsync(album.AlbumId, userName, _reviewText);
+            Snackbar.Add("Review saved successfully!", Severity.Success);
         }
         else if (string.IsNullOrEmpty(_reviewText) && !string.IsNullOrEmpty(userName))
         {
 
             await UserService.RemoveReviewAsync(album.AlbumId, userName);
+            Snackbar.Add("Review removed successfully!", Severity.Success);
 		}
     }
 }

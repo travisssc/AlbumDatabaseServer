@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inherits MainLayout
 
+<PageTitle>Search results for @searchQuery • Waveformd</PageTitle>
 @if (searchResults == null)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -18,7 +19,7 @@ else if (searchResults.Count == 0)
 }
 else
 {
-    <MudContainer Class="pt-16">
+    <MudContainer Class="mt-2 pt-16 rounded-lg" Style="background-color: #121212">
         @if (searchResults.Count < 250)
         {
             <h3>Found @searchResults.Count matches for "@searchQuery"</h3>
@@ -54,6 +55,10 @@ else
                             <MudChip Style="@style" Text="@albumGenre.Genre.Name"></MudChip>
                         }
                     </MudChipSet>
+                </div>
+                <div class="rating-container">
+                    <AlbumDatabaseServer.Components.AverageRating averageRating="Math.Round(AlbumService.GetAverageRating(result.AlbumId), 1)"
+                                                                  ratingCount="AlbumService.GetRatingCount(result.AlbumId)"/>
                 </div>
             </div>
             <hr class="result-divider"/>

@@ -1,11 +1,19 @@
 ﻿.result {
     display: flex;
+    padding: 16px;
+    border-radius: 10px;
+    transition: background-color ease 0.3s;
+}
+.result:hover{
+    background-color: #212121;
 }
 .result-info {
     padding-left: 32px;
+    flex-grow: 1;
 }
 .result-name {
     padding-bottom: 16px;
+    white-space: nowrap;
 }
 .result-year {
     color: #535353;
@@ -33,4 +41,10 @@
 .link-album:hover, .link-artist:hover {
     color: #b3b3b3;
     cursor: pointer;
+}
+.rating-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 64px;
 }

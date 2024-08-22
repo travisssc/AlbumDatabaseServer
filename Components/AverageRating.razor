@@ -1,0 +1,30 @@
+﻿@using AlbumDatabaseServer.Data
+@inject AlbumService AlbumService
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<div class="rating-average-container">
+    <h3 class="rating-header">Average rating</h3>
+    <div class="rating-average">
+        <h2>@averageRating</h2>
+        <div class="stars">
+            @for (int i = 0; i < 5; i++)
+            {
+                <span class="material-symbols-outlined star">
+                    star
+                </span>
+            }
+        </div>
+        <subtitle2 class="rating-count">@FormatRatingCount(ratingCount) ratings</subtitle2>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public decimal averageRating { get; set; }
+    [Parameter]
+    public int ratingCount { get; set; }
+    private string FormatRatingCount(int count)
+    {
+        return count > 999 ? $"{Math.Round(count / 1000.0, 1)}k" : count.ToString();
+    }
+}

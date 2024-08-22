@@ -112,10 +112,10 @@ namespace AlbumDatabaseServer.Data
                     DateRated = DateTime.UtcNow
                 };
         }
-        public async Task SubmitAlbumRatingAsync(int albumId, string userName, int rating, string review)
+        public async Task SubmitAlbumRatingAsync(int albumId, string userName, int rating)
         {
             var albumRating = await GetRatingAsync(albumId, userName);
-            if (albumRating != null)
+            if (albumRating.Rating != 0)
             {
                 albumRating.Rating = rating;
                 albumRating.DateRated = DateTime.UtcNow;
