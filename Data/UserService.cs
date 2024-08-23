@@ -7,27 +7,29 @@ namespace AlbumDatabaseServer.Data
 {
     public class UserService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-        public UserService(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public UserService(IDbContextFactory<ApplicationDbContext> dbContextFactory, UserManager<IdentityUser> userManager)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
         }
 
         // LISTEN FUNCTIONS
         public async Task<bool> IsAlbumListenedAsync(int albumId, string userName)
         {
-            return await _context.ListenedAlbums
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.ListenedAlbums
                 .AnyAsync(l => l.AlbumId == albumId && l.UserName == userName);
         }
 
         public async Task ToggleListenAsync(int albumId, string userName)
         {
-            var listenedAlbum = await _context.ListenedAlbums
+			using var context = _dbContextFactory.CreateDbContext();
+			var listenedAlbum = await context.ListenedAlbums
                 .FirstOrDefaultAsync(l => l.AlbumId == albumId && l.UserName == userName);
             if (listenedAlbum != null)
             {
-                _context.ListenedAlbums.Remove(listenedAlbum);
+                context.ListenedAlbums.Remove(listenedAlbum);
             }
             else
             {
@@ -37,25 +39,35 @@ namespace AlbumDatabaseServer.Data
                     UserName = userName,
                     DateListened = DateTime.UtcNow
                 };
-                _context.ListenedAlbums.Add(listenedAlbum);
+                context.ListenedAlbums.Add(listenedAlbum);
             }
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
+		public async Task<List<ListenedAlbums>> GetListenedAlbumsAsync(string userName)
+		{
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.ListenedAlbums
+				.Where(f => f.UserName == userName)
+				.OrderByDescending(f => f.DateListened)
+				.ToListAsync();
+		}
 
-        // FAVORITE FUNCTIONS
-        public async Task<bool> IsAlbumFavoritedAsync(int albumId, string userName)
+		// FAVORITE FUNCTIONS
+		public async Task<bool> IsAlbumFavoritedAsync(int albumId, string userName)
         {
-            return await _context.FavoriteAlbums
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.FavoriteAlbums
                 .AnyAsync(l => l.AlbumId == albumId && l.UserName == userName);
         }
 
         public async Task ToggleFavoriteAsync(int albumId, string userName)
         {
-            var favoritedAlbum = await _context.FavoriteAlbums
+			using var context = _dbContextFactory.CreateDbContext();
+			var favoritedAlbum = await context.FavoriteAlbums
                 .FirstOrDefaultAsync(l => l.AlbumId == albumId && l.UserName == userName);
             if (favoritedAlbum != null)
             {
-                _context.FavoriteAlbums.Remove(favoritedAlbum);
+                context.FavoriteAlbums.Remove(favoritedAlbum);
             }
             else
             {
@@ -65,26 +77,35 @@ namespace AlbumDatabaseServer.Data
                     UserName = userName,
                     DateFavorited = DateTime.UtcNow
                 };
-                _context.FavoriteAlbums.Add(favoritedAlbum);
+                context.FavoriteAlbums.Add(favoritedAlbum);
             }
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
-
+        public async Task<List<FavoriteAlbums>> GetFavoriteAlbumsAsync(string userName)
+		{
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.FavoriteAlbums
+				.Where(f => f.UserName == userName)
+				.OrderByDescending(f => f.DateFavorited)
+				.ToListAsync();
+		}
         // QUEUE FUNCTIONS
 
         public async Task<bool> IsAlbumQueuedAsync(int albumId, string userName)
         {
-            return await _context.AccountQueue
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.AccountQueue
                 .AnyAsync(l => l.AlbumId == albumId && l.UserName == userName);
         }
 
         public async Task ToggleQueueAsync(int albumId, string userName)
         {
-            var queuedAlbum = await _context.AccountQueue
+			using var context = _dbContextFactory.CreateDbContext();
+			var queuedAlbum = await context.AccountQueue
                 .FirstOrDefaultAsync(l => l.AlbumId == albumId && l.UserName == userName);
             if (queuedAlbum != null)
             {
-                _context.AccountQueue.Remove(queuedAlbum);
+                context.AccountQueue.Remove(queuedAlbum);
             }
             else
             {
@@ -94,15 +115,30 @@ namespace AlbumDatabaseServer.Data
                     UserName = userName,
                     DateAdded = DateTime.UtcNow
                 };
-                _context.AccountQueue.Add(queuedAlbum);
+                context.AccountQueue.Add(queuedAlbum);
             }
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
-
-        // RATING FUNCTIONS
-        public async Task<AlbumRating> GetRatingAsync(int albumId, string userName)
+        public async Task<int> GetQueueCount(string userName)
+		{
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.AccountQueue
+				.Where(q => q.UserName == userName)
+				.CountAsync();
+		}
+		public async Task<List<AccountQueue>> GetQueuedAlbumsAsync(string userName)
+		{
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.AccountQueue
+				.Where(f => f.UserName == userName)
+				.OrderByDescending(f => f.DateAdded)
+				.ToListAsync();
+		}
+		// RATING FUNCTIONS
+		public async Task<AlbumRating> GetRatingAsync(int albumId, string userName)
         {
-            return await _context.AlbumRatings
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.AlbumRatings
                 .FirstOrDefaultAsync(r => r.AlbumId == albumId && r.UserName == userName)
                 ?? new AlbumRating
                 {
@@ -114,7 +150,8 @@ namespace AlbumDatabaseServer.Data
         }
         public async Task SubmitAlbumRatingAsync(int albumId, string userName, int rating)
         {
-            var albumRating = await GetRatingAsync(albumId, userName);
+			using var context = _dbContextFactory.CreateDbContext();
+			var albumRating = await GetRatingAsync(albumId, userName);
             if (albumRating.Rating != 0)
             {
                 albumRating.Rating = rating;
@@ -129,29 +166,46 @@ namespace AlbumDatabaseServer.Data
                     Rating = rating,
                     DateRated = DateTime.UtcNow
                 };
-                _context.AlbumRatings.Add(albumRating);
+                context.AlbumRatings.Add(albumRating);
             }
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         public async Task RemoveRatingAsync(int albumId, string userName)
         {
-            var albumRating = await GetRatingAsync(albumId, userName);
+			using var context = _dbContextFactory.CreateDbContext();
+			var albumRating = await GetRatingAsync(albumId, userName);
             if (albumRating != null)
             {
-                _context.AlbumRatings.Remove(albumRating);
-                await _context.SaveChangesAsync();
+                context.AlbumRatings.Remove(albumRating);
+                await context.SaveChangesAsync();
             }
         }
         public async Task UpdateRatingAsync(AlbumRating rating)
         {
-            _context.AlbumRatings.Update(rating);
-            await _context.SaveChangesAsync();
+			using var context = _dbContextFactory.CreateDbContext();
+			context.AlbumRatings.Update(rating);
+            await context.SaveChangesAsync();
         }
-
-        // REVIEW FUNCTIONS
-        public async Task<AlbumReview> GetReviewAsync(int albumId, string userName)
+		public async Task<int> GetRatingCount(string userName)
+		{
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.AlbumRatings
+				.Where(r => r.UserName == userName)
+				.CountAsync();
+		}
+        public async Task<List<double>> GetRatingDistribution(string userName)
         {
-            return await _context.AlbumReviews
+            using var context = _dbContextFactory.CreateDbContext();
+            return await context.AlbumRatings
+                .Where(r => r.UserName == userName)
+                .Select(r => (double)r.Rating)
+                .ToListAsync();
+        }
+		// REVIEW FUNCTIONS
+		public async Task<AlbumReview> GetReviewAsync(int albumId, string userName)
+        {
+			using var context = _dbContextFactory.CreateDbContext();
+			return await context.AlbumReviews
                 .FirstOrDefaultAsync(r => r.AlbumId == albumId && r.UserName == userName)
                 ?? new AlbumReview
                 {
@@ -163,7 +217,8 @@ namespace AlbumDatabaseServer.Data
         }
         public async Task SubmitReviewAsync(int albumId, string userName, string reviewText)
         {
-            var existingReview = await GetReviewAsync(albumId, userName);
+			using var context = _dbContextFactory.CreateDbContext();
+			var existingReview = await GetReviewAsync(albumId, userName);
             if (!string.IsNullOrEmpty(existingReview.ReviewText))
             {
                 existingReview.ReviewText = reviewText;
@@ -178,17 +233,18 @@ namespace AlbumDatabaseServer.Data
                     ReviewText = reviewText,
                     DateReviewed = DateTime.UtcNow
                 };
-                _context.AlbumReviews.Add(newReview);
+                context.AlbumReviews.Add(newReview);
             }
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         public async Task RemoveReviewAsync(int albumId, string userName)
         {
-            var review = await GetReviewAsync(albumId, userName);
+			using var context = _dbContextFactory.CreateDbContext();
+			var review = await GetReviewAsync(albumId, userName);
             if (review != null)
             {
-                _context.AlbumReviews.Remove(review);
-                await _context.SaveChangesAsync();
+                context.AlbumReviews.Remove(review);
+                await context.SaveChangesAsync();
             }
         }
     }

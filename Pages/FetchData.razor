@@ -97,7 +97,7 @@ else
 														  Required="true" RequiredError="Please enter a title" />
 											<MudNumericField @bind-Value="_newSongPos" Placeholder="1" Min="1" Style="width: 50px;" DisableUnderLine="true" FullWidth="false" />
 										</MudStack>
-										<MudButton OnClick="AddSong" Size="Size.Small" FullWidth="true" Color="Color.Primary" Class="mt-2">Add Song</MudButton>
+										<MudButton OnClick="AddSong" Size="Size.Small" FullWidth="true" Class="mt-2" Style="background-color: #3BADE1">Add Song</MudButton>
 										@if (showPosError)
 										{
 											<MudText Class="mt-2" Typo="Typo.subtitle2" Color="Color.Error">Track # already exists!</MudText>
@@ -109,7 +109,7 @@ else
 														  Required="true" RequiredError="Please enter a title" />
 											<MudNumericField @bind-Value="_deleteSongPos" Placeholder="1" Min="1" Style="width: 50px;" DisableUnderLine="true" FullWidth="false" />
 										</MudStack>
-										<MudButton OnClick="DeleteSong" Size="Size.Small" FullWidth="true" Color="Color.Primary" Class="mt-2">Delete Song</MudButton>
+										<MudButton OnClick="DeleteSong" Size="Size.Small" FullWidth="true" Style="background-color: #3BADE1" Class="mt-2">Delete Song</MudButton>
 										@if (showDelError)
 										{
 											<MudText Class="mt-2" Typo="Typo.subtitle2" Color="Color.Error">Song not found!</MudText>

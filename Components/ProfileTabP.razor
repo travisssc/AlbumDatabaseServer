@@ -1,0 +1,137 @@
+﻿@using AlbumDatabaseServer.Data
+@inject UserService UserService
+@inject AlbumService AlbumService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<div class="tab-container">
+	<div class="tab-content">
+		<div class="cover-container">
+			<h3>Recent Favorites</h3>
+			<hr class="divider" />
+			<div class="card-container">
+				@if (favoriteAlbums == null)
+				{
+					<p>No favorites yet!</p>
+				}
+				else
+				{
+					@foreach (var album in favoriteAlbums)
+					{
+						<div class="album-card">
+							<AlbumComponent Album="album" />
+						</div>
+					}
+				}
+			</div>
+			<h3>Recent Listens</h3>
+			<hr class="divider" />
+			<div class="card-container">
+				@if (listenedAlbums == null)
+				{
+					<p>No listens yet!</p>
+				}
+				else
+				{
+					@foreach (var album in listenedAlbums)
+					{
+						<div class="album-card">
+							<AlbumComponent Album="album" />
+						</div>
+					}
+				}
+			</div>
+		</div>
+		<div class="side-panel">
+			<div class="text-container">
+				<h3>Queue</h3>
+				<h3 class="info-text">@queueCount</h3>
+			</div>
+			<hr class="divider" />
+			<div class="display-container">
+				<QueueDisplay Username="@userName" />
+			</div>
+			<div class="text-container">
+				<h3>Ratings</h3>
+				<h3 class="info-text">@ratingCount</h3>
+			</div>
+			<hr class="divider" />
+			<div class="display-container">
+				<MudChart ChartType="ChartType.Bar" ChartSeries="@ratingChartSeries"
+					Height="80px" Width="340px"/>
+			</div>
+			<hr class="spacer"/>
+			<h3>Activity</h3>
+			<hr class="divider" />
+		</div>
+	</div>
+</div>
+
+
+@code {
+	private string userName;
+	private List<Album> favoriteAlbums;
+	private List<Album> listenedAlbums;
+	private int queueCount = 0;
+	private int ratingCount = 0;
+	public List<ChartSeries> ratingChartSeries = new List<ChartSeries>();
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		if (user.Identity.IsAuthenticated)
+		{
+			userName = user.Identity.Name;
+			var favoriteAlbumsList = await UserService.GetFavoriteAlbumsAsync(userName);
+			var listenedAlbumsList = await UserService.GetListenedAlbumsAsync(userName);
+			queueCount = await UserService.GetQueueCount(userName);
+			ratingCount = await UserService.GetRatingCount(userName);
+			var ratingNumbers = await UserService.GetRatingDistribution(userName);
+			double[] ratingDistribution = { 0, 0, 0, 0, 0 };
+			foreach (var val in ratingNumbers)
+			{
+				switch (val)
+				{
+					default: break;
+					case 1:
+						ratingDistribution[0]++;
+						break;
+					case 2:
+						ratingDistribution[1]++;
+						break;
+					case 3:
+						ratingDistribution[2]++;
+						break;
+					case 4:
+						ratingDistribution[3]++;
+						break;
+					case 5:
+						ratingDistribution[4]++;
+						break;
+				}
+			}
+			ratingChartSeries = new List<ChartSeries>()
+			{
+				new ChartSeries() { Name = "", Data = ratingDistribution }
+			};
+			if (favoriteAlbumsList.Any())
+			{
+				favoriteAlbums = favoriteAlbumsList
+					.Select(fav => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == fav.AlbumId))
+					.Where(album => album != null)
+					.Take(4)
+					.ToList();
+			}
+			if (listenedAlbumsList.Any())
+			{
+				listenedAlbums = listenedAlbumsList
+					.Select(listened => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == listened.AlbumId))
+					.Where(album => album != null)
+					.Take(4)
+					.ToList();
+			}
+		}
+	}
+
+}

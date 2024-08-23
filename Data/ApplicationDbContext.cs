@@ -38,5 +38,6 @@ namespace AlbumDatabaseServer.Data
         public DbSet<FavoriteAlbums> FavoriteAlbums { get; set; }
         public DbSet<ListenedAlbums> ListenedAlbums { get; set; }
         public DbSet<AlbumReview> AlbumReviews { get; set; }
+        public DbSet<UserProfilePicture> UserProfilePictures { get; set; }
     }
 }

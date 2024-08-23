@@ -1,0 +1,44 @@
+﻿@using AlbumDatabaseServer.Data
+@inject UserService UserService
+@inject AlbumService AlbumService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<button class="queue-button" @onclick="NavToQueue">
+	<div class="queue-container">
+		@if (queuedAlbums == null)
+		{
+			<p>Add something to the queue!</p>
+		}
+		else
+		{
+			@foreach (var album in queuedAlbums)
+			{
+				<img src="@album.AlbumCover" class="q-album-cover" />
+			}
+		}
+	</div>
+</button>
+
+@code {
+	[Parameter]
+	public string Username { get; set; }
+	private List<Album> queuedAlbums;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var queuedAlbumsList = await UserService.GetQueuedAlbumsAsync(Username);
+		if (queuedAlbumsList.Any())
+		{
+			queuedAlbums = queuedAlbumsList
+				.Select(q => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == q.AlbumId))
+				.Where(album => album != null)
+				.Take(5)
+				.ToList();
+		}
+	}
+	private void NavToQueue()
+	{
+		NavigationManager.NavigateTo("/Queue");
+	}
+}

@@ -1,0 +1,39 @@
+﻿.tab-container {
+    max-width: fit-content;
+}
+.divider {
+    border: 1px solid #212121;
+    margin: 5px 0px 16px 0px;
+}
+.tab-content {
+    display: flex;
+    justify-content: center;
+}
+.cover-container {
+
+}
+.card-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+.album-card {
+    margin: 0px 8px 0px 8px;
+}
+.side-panel {
+    margin-left: 64px;
+}
+.text-container {
+    display: flex;
+    justify-content: space-between;
+}
+.info-text {
+    color: #535353;
+}
+.display-container{
+    margin-bottom: 32px;
+    display: flex;
+}
+.spacer {
+    margin-bottom: 20px;
+}

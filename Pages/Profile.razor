@@ -1,11 +1,12 @@
-﻿@page "/profile"
+﻿@page "/Profile"
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@using AlbumDatabaseServer.Components
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-
-<div style="background: linear-gradient(to bottom, #212121, #121212)">
+<PageTitle>@username's profile • Waveformd</PageTitle>
+<div class="body">
 	<div class="profile-header">
 		@if (isUserLoggedIn)
 		{
@@ -20,14 +21,68 @@
 			</div>
 		}
 	</div>
-	<div>
+	<div class="profile-tray">
+		<button class="profile profile-tab @(tabIndex == 0 ? "active" : "")"
+				@onclick="() => tabIndex = 0">
+			<h3>Profile</h3>
+		</button>
+		<button class="albums profile-tab @(tabIndex == 1 ? "active" : "")"
+				@onclick="() => tabIndex = 1">
+			<h3>Albums</h3>
+		</button>
+		<button class="queue profile-tab @(tabIndex == 2 ? "active" : "")"
+				@onclick="() => tabIndex = 2">
+			<h3>Queue</h3>
+		</button>
+		<button class="reviews profile-tab @(tabIndex == 3 ? "active" : "")"
+				@onclick="() => tabIndex = 3">
+			<h3>Reviews</h3>
+		</button>
+		<button class="lists profile-tab @(tabIndex == 4 ? "active" : "")"
+				@onclick="() => tabIndex = 4">
+			<h3>Lists</h3>
+		</button>
+		<button class="favorites profile-tab @(tabIndex == 5 ? "active" : "")"
+				@onclick="() => tabIndex = 5">
+			<h3>Favorites</h3>
+		</button>
+		<div class="sliding-border @(tabIndex == 0 ? "tab-0" : 
+                             tabIndex == 1 ? "tab-1" : 
+                             tabIndex == 2 ? "tab-2" : 
+                             tabIndex == 3 ? "tab-3" : 
+                             tabIndex == 4 ? "tab-4" : "tab-5")" />
 
+	</div>
+	<div class="tab-content">
+		@switch (tabIndex)
+		{
+			case 0:
+				<ProfileTabP />
+				break;
+			case 1:
+				<AlbumsTabP />
+				break;
+			case 2:
+				<QueueTabP />
+				break;
+			case 3:
+				<ReviewsTabP />
+				break;
+			case 4:
+				<ListsTabP />
+				break;
+			case 5:
+				<FavoritesTabP />
+				break;
+		
+		}
 	</div>
 </div>
 
 @code {
 	private bool isUserLoggedIn;
 	private string username;
+	private int tabIndex = 0;
 	private string profilePictureUrl = "profile-pictures/default-profile.png";
 	protected override async Task OnInitializedAsync()
 	{
@@ -38,6 +93,7 @@
 		{
 			username = user.Identity.Name;
 		}
+		Console.WriteLine("User logged in");
 	}
 	private void NavToProfileEdit()
 	{

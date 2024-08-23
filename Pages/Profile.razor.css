@@ -1,4 +1,9 @@
-﻿.profile-header {
+﻿.body {
+    background: linear-gradient(to bottom, #212121, black);
+    height: 25vh;
+    justify-content: center;
+}
+.profile-header {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -17,4 +22,66 @@
     transform: scale(0.5);
     overflow: hidden;
     margin: -24px;
+}
+.profile-tray {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    position: relative;
+    margin: 0 auto;
+    max-width: fit-content;
+}
+.profile-tab {
+    color: #b3b3b3;
+    padding: 8px;
+    margin: 0px 8px 0px 8px;
+    position: relative;
+    transition: color ease 0.3s;
+}
+.tab-content {
+    max-width: 896px;
+    margin: 32px auto;
+}
+.active {
+    color: white;
+}
+.sliding-border {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    border-bottom: 3px solid #3BADE1;
+    border-radius: 100vh;
+    transition: transform 0.2s ease, width 0.3s ease;
+}
+.tab-0 {
+    left: 8px;
+    width: 73.5px; /* Adjust to match the width of the first tab */
+    transform: translateX(0);
+}
+
+.tab-1 {
+    width: 82.5px; /* Adjust to match the width of the second tab */
+    transform: translateX(92.5px); /* Adjust the translateX value to match the tab positions */
+}
+
+.tab-2 {
+    width: 74px; /* Adjust to match the width of the third tab */
+    transform: translateX(186px); /* Adjust the translateX value to match the tab positions */
+}
+
+.tab-3 {
+    width: 87.5px; /* Adjust to match the width of the fourth tab */
+    transform: translateX(271px); /* Adjust the translateX value to match the tab positions */
+}
+
+.tab-4 {
+    width: 59px; /* Adjust to match the width of the fifth tab */
+    transform: translateX(368.5px); /* Adjust the translateX value to match the tab positions */
+}
+
+.tab-5 {
+    width: 95px; /* Adjust to match the width of the sixth tab */
+    transform: translateX(438.5px); /* Adjust the translateX value to match the tab positions */
 }

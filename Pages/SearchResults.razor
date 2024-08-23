@@ -1,9 +1,12 @@
 ﻿@page "/search/{searchQuery}"
 @using AlbumDatabaseServer.Data
 @inject AlbumService AlbumService
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inherits MainLayout
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <PageTitle>Search results for @searchQuery • Waveformd</PageTitle>
 @if (searchResults == null)
 {
@@ -31,7 +34,7 @@ else
         <hr style="border: 1px solid #212121; margin-bottom: 16px; margin-top: 5px;"/>
         @foreach (var result in searchResults)
         {
-            <div class="result">
+            <div class="result" @onclick="()=> HandleNavigation(result)">
                 <button class="view-album">
                     <MudImage Src="@result.AlbumCover" Alt="@result.Name" Width="200" Class="rounded-lg"
                               @onclick="()=> HandleNavigation(result)"/>
@@ -48,7 +51,7 @@ else
                     <a class="link-artist">
                         <h3 class="result-artist">@result.Artist.ArtistName</h3>
                     </a>
-                    <MudChipSet Class="pt-16">
+                    <MudChipSet Class="pt-16" Style="white-space: nowrap;">
                         @foreach (var albumGenre in result.AlbumGenres)
                         {
                             var style = $"background: {GetGenreGradient(albumGenre.Genre.Name)};";
@@ -71,10 +74,18 @@ else
 @code {
     [Parameter]
     public string searchQuery { get; set; }
+    private bool isQueued = false;
     private List<Album> searchResults;
+    private string userName;
+
     protected override async Task OnInitializedAsync()
     {
-        await LoadSearchResults();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            userName = user.Identity.Name;
+        }
     }
     protected override async Task OnParametersSetAsync()
     {

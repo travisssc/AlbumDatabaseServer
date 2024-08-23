@@ -20,7 +20,7 @@
         <MudSpacer></MudSpacer>
         <LoginDisplay />
         @* <a href="https://docs.microsoft.com/aspnet/" target="_blank" style="margin-left: 20px;">About</a> *@
-        <a href="/yourqueue" class="item">
+        <a href="/Queue" class="item">
             <div style="display: flex; align-items: center;">
                 <span class="material-symbols-outlined">
                     queue_music
@@ -28,13 +28,13 @@
                 <span style="padding-left: 5px;">Your Queue</span>
             </div>
         </a>
-        <a href="/albums" class="item">
+        <a href="/Albums" class="item">
             Albums
         </a>
-        <a href="/lists" class="item">
+        <a href="/Lists" class="item">
             Lists
         </a>
-        <a href="/members" class="item">
+        <a href="/Members" class="item">
             Members
         </a>
         @* <button class="search-button" @onclick="() => searchOpen = !searchOpen">
@@ -80,6 +80,25 @@
     .item {
         margin-inline: 15px;
         color: #b3b3b3;
+    }
+
+    .mud-chart {
+        transform: scale(1.75);
+    }
+    .mud-chart-bar {
+        stroke-width: 135px;
+        stroke: #3BADE1;
+    }
+    .mud-chart-legend {
+        display: none !important;
+    }
+
+    .mud-charts-yaxis {
+        display: none;
+    }
+
+    .mud-charts-grid {
+        display: none;
     }
 </style>
 

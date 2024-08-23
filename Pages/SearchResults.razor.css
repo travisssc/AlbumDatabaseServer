@@ -6,6 +6,19 @@
 }
 .result:hover{
     background-color: #212121;
+    cursor: pointer;
+}
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+}
+.queue-button {
+    color: #3BADE1;
+    transform: scale(200%);
+    position: absolute;
+    z-index: 1;
+}
+.queue-button:hover {
+    color: #67c5f0;
 }
 .result-info {
     padding-left: 32px;
