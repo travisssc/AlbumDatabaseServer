@@ -184,6 +184,10 @@ else
             await UserService.ToggleListenAsync(album.AlbumId, userName);
             isListened = !isListened;
             hoverListen = isListened ? "Listened" : "Listen";
+            if (isQueued && isListened)
+            {
+                ToggleQueue();
+            }
         }
     }
 
@@ -263,6 +267,14 @@ else
         {
             await UserService.SubmitAlbumRatingAsync(album.AlbumId, userName, rating);
             isRated = true;
+            if (!isListened)
+            {
+                ToggleListen();
+            }
+            if (isQueued)
+            {
+                ToggleQueue();
+            }
         }
         StateHasChanged();
     }
@@ -272,6 +284,14 @@ else
         {
             await UserService.SubmitReviewAsync(album.AlbumId, userName, _reviewText);
             Snackbar.Add("Review saved successfully!", Severity.Success);
+            if (isQueued)
+            {
+                ToggleQueue();
+            }
+            if (!isListened)
+            {
+                ToggleListen();
+            }
         }
         else if (string.IsNullOrEmpty(_reviewText) && !string.IsNullOrEmpty(userName))
         {

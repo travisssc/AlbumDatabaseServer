@@ -40,48 +40,19 @@
     transition: color ease 0.3s;
 }
 .tab-content {
-    max-width: 896px;
+    max-width: fit-content;
     margin: 32px auto;
+    justify-content: center;
 }
 .active {
     color: white;
 }
-.sliding-border {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 2px;
-    border-bottom: 3px solid #3BADE1;
-    border-radius: 100vh;
-    transition: transform 0.2s ease, width 0.3s ease;
+.record-count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: 10vh;
 }
-.tab-0 {
-    left: 8px;
-    width: 73.5px; /* Adjust to match the width of the first tab */
-    transform: translateX(0);
-}
-
-.tab-1 {
-    width: 82.5px; /* Adjust to match the width of the second tab */
-    transform: translateX(92.5px); /* Adjust the translateX value to match the tab positions */
-}
-
-.tab-2 {
-    width: 74px; /* Adjust to match the width of the third tab */
-    transform: translateX(186px); /* Adjust the translateX value to match the tab positions */
-}
-
-.tab-3 {
-    width: 87.5px; /* Adjust to match the width of the fourth tab */
-    transform: translateX(271px); /* Adjust the translateX value to match the tab positions */
-}
-
-.tab-4 {
-    width: 59px; /* Adjust to match the width of the fifth tab */
-    transform: translateX(368.5px); /* Adjust the translateX value to match the tab positions */
-}
-
-.tab-5 {
-    width: 95px; /* Adjust to match the width of the sixth tab */
-    transform: translateX(438.5px); /* Adjust the translateX value to match the tab positions */
+.count-text {
+    color: #b3b3b3;
 }

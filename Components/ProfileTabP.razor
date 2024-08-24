@@ -64,6 +64,22 @@
 			<hr class="spacer"/>
 			<h3>Activity</h3>
 			<hr class="divider" />
+			@if (userActivities == null)
+			{
+				<p>No activity yet!</p>
+			}
+			else
+			{
+				<MudTimeline TimelinePosition="TimelinePosition.Start">
+					@foreach (var activity in userActivities)
+					{
+						<MudTimelineItem TimelineAlign="TimelineAlign.End">
+							<subtitle1 class="activity-text">@activity.ActivityType</subtitle1>
+							<subtitle2 class="date-text">@FormatTimeToDate(activity.Date)</subtitle2>
+						</MudTimelineItem>
+					}
+				</MudTimeline>
+			}
 		</div>
 	</div>
 </div>
@@ -76,6 +92,7 @@
 	private int queueCount = 0;
 	private int ratingCount = 0;
 	public List<ChartSeries> ratingChartSeries = new List<ChartSeries>();
+	private List<UserActivity> userActivities = new List<UserActivity>();
 	protected override async Task OnInitializedAsync()
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -88,28 +105,27 @@
 			queueCount = await UserService.GetQueueCount(userName);
 			ratingCount = await UserService.GetRatingCount(userName);
 			var ratingNumbers = await UserService.GetRatingDistribution(userName);
+			userActivities = await UserService.GetUserActivitiesAsync(userName);
+			foreach (var activity in userActivities)
+			{
+				var album = AlbumService.Albums.FirstOrDefault(a => a.AlbumId == activity.AlbumId);
+				if (album != null)
+				{
+					activity.AlbumName = album.Name;
+					activity.ActivityType = activity.ActivityType switch
+					{
+						"Queued" => "You added " + album.Name + " to your queue",
+						"Rated" => "You rated " + album.Name,
+						"Favorited" => "You favorited " + album.Name,
+						"Listened" => "You listened to " + album.Name,
+						"Reviewed" => "You reviewed " + album.Name,
+					};
+				}
+			}
 			double[] ratingDistribution = { 0, 0, 0, 0, 0 };
 			foreach (var val in ratingNumbers)
 			{
-				switch (val)
-				{
-					default: break;
-					case 1:
-						ratingDistribution[0]++;
-						break;
-					case 2:
-						ratingDistribution[1]++;
-						break;
-					case 3:
-						ratingDistribution[2]++;
-						break;
-					case 4:
-						ratingDistribution[3]++;
-						break;
-					case 5:
-						ratingDistribution[4]++;
-						break;
-				}
+				    ratingDistribution[(int)val - 1]++;
 			}
 			ratingChartSeries = new List<ChartSeries>()
 			{
@@ -132,6 +148,19 @@
 					.ToList();
 			}
 		}
+	}
+	private string FormatTimeToDate(DateTime activityDate)
+	{
+		var timeSpan = DateTime.UtcNow - activityDate;
+		return timeSpan switch
+		{
+			{ TotalMinutes: < 1 } => "Just now",
+			{ TotalMinutes: < 60 } => $"{(int)timeSpan.TotalMinutes}m",
+			{ TotalHours: < 24 } => $"{(int)timeSpan.TotalHours}h",
+			{ TotalDays: < 30 } => $"{(int)timeSpan.TotalDays / 7}d",
+			{ TotalDays: < 365 } => $"{(int)timeSpan.TotalDays / 30}m",
+			_ => $"{(int)timeSpan.TotalDays / 365}yr"
+		};
 	}
 
 }

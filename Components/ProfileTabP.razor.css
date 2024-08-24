@@ -1,5 +1,5 @@
 ﻿.tab-container {
-    max-width: fit-content;
+    max-width: 896px;
 }
 .divider {
     border: 1px solid #212121;
@@ -36,4 +36,9 @@
 }
 .spacer {
     margin-bottom: 20px;
+}
+.activity-text {
+}
+.date-text {
+    color: #535353;
 }

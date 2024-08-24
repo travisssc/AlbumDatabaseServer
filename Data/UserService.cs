@@ -14,6 +14,40 @@ namespace AlbumDatabaseServer.Data
             _dbContextFactory = dbContextFactory;
         }
 
+        // retrieve all user activity sorted by newest
+        public async Task<List<UserActivity>> GetUserActivitiesAsync(string userName)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            var listenedActivities = await context.ListenedAlbums
+                .Where(l => l.UserName == userName)
+				.Select(l => new ListenedActivity(l.AlbumId, l.UserName, l.DateListened))
+				.ToListAsync();
+            var favoriteActivities = await context.FavoriteAlbums
+				.Where(f => f.UserName == userName)
+                .Select(f => new FavoriteActivity(f.AlbumId, f.UserName, f.DateFavorited))
+                .ToListAsync();
+            var queueActivities = await context.AccountQueue
+                .Where(q => q.UserName == userName)
+                .Select(q => new QueueActivity(q.AlbumId, q.UserName, q.DateAdded))
+                .ToListAsync();
+            var ratingActivities = await context.AlbumRatings
+				.Where(r => r.UserName == userName)
+				.Select(r => new RatingActivity(r.AlbumId, r.UserName, r.DateRated, r.Rating))
+				.ToListAsync();
+            var reviewActivities = await context.AlbumReviews
+                .Where(r => r.UserName == userName)
+                .Select(r => new ReviewActivity(r.AlbumId, r.UserName, r.DateReviewed))
+                .ToListAsync();
+            var allActivities = listenedActivities.Cast<UserActivity>()
+                .Concat(favoriteActivities)
+                .Concat(queueActivities)
+                .Concat(ratingActivities)
+                .Concat(reviewActivities)
+                .OrderByDescending(a => a.Date)
+                .Take(5)
+                .ToList();
+            return allActivities;
+        }
         // LISTEN FUNCTIONS
         public async Task<bool> IsAlbumListenedAsync(int albumId, string userName)
         {
@@ -51,7 +85,20 @@ namespace AlbumDatabaseServer.Data
 				.OrderByDescending(f => f.DateListened)
 				.ToListAsync();
 		}
-
+        public async Task<int> CountListenedAlbumsAsync(string userName)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            return await context.ListenedAlbums
+				.Where(l => l.UserName == userName)
+				.CountAsync();
+        }
+        public async Task<DateTime> GetDateListened(string userName, int albumId)
+		{
+			using var context = _dbContextFactory.CreateDbContext();
+			var listenedAlbum = await context.ListenedAlbums
+				.FirstOrDefaultAsync(l => l.AlbumId == albumId && l.UserName == userName);
+			return listenedAlbum?.DateListened ?? DateTime.MinValue;
+		}
 		// FAVORITE FUNCTIONS
 		public async Task<bool> IsAlbumFavoritedAsync(int albumId, string userName)
         {
@@ -138,15 +185,16 @@ namespace AlbumDatabaseServer.Data
 		public async Task<AlbumRating> GetRatingAsync(int albumId, string userName)
         {
 			using var context = _dbContextFactory.CreateDbContext();
-			return await context.AlbumRatings
-                .FirstOrDefaultAsync(r => r.AlbumId == albumId && r.UserName == userName)
-                ?? new AlbumRating
-                {
-                    AlbumId = albumId,
-                    UserName = userName,
-                    Rating = 0,
-                    DateRated = DateTime.UtcNow
-                };
+            return await context.AlbumRatings
+                .FirstOrDefaultAsync(r => r.AlbumId == albumId && r.UserName == userName);
+        }
+        public async Task<int>  GetRatingIntAsync(int albumId, string userName)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            return await context.AlbumRatings
+				.Where(r => r.AlbumId == albumId && r.UserName == userName)
+				.Select(r => r.Rating)
+				.FirstOrDefaultAsync();
         }
         public async Task SubmitAlbumRatingAsync(int albumId, string userName, int rating)
         {

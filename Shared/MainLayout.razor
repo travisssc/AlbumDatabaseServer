@@ -100,6 +100,33 @@
     .mud-charts-grid {
         display: none;
     }
+
+    .mud-timeline-vertical .mud-timeline-item {
+        padding-bottom: 16px !important;
+    }
+
+    .mud-expand-panel-content {
+        position: absolute !important;
+        z-index: 2 !important;
+        display: none !important; 
+    }
+    .mud-expand-panel {
+        background: transparent;
+    }
+
+    .mud-expand-panel.mud-panel-expanded {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        background: #212121;
+    }
+    .mud-panel-expanded .mud-expand-panel-content{
+        display: block !important;
+        background: #212121;
+        border-bottom-right-radius: 8px;
+        border-bottom-left-radius: 8px;
+        width: 100%;
+        padding: 0px 10px 8px;
+    }
 </style>
 
 <MudThemeProvider Theme="@customTheme" />
