@@ -11,7 +11,6 @@
 }
 .album-card {
     width: 198px;
-    height: 267px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -21,6 +20,12 @@
     position: relative;
     background: #121212;
     transition: background ease 0.2s;
+}
+.album-card-large {
+    height: 267px;
+}
+.album-card-small {
+    height: fit-content;
 }
 .album-card::before {
     border-radius: 8px;
@@ -90,11 +95,6 @@
     top: 60px;
     top: 60px;
 }
-
-.album-menu .mud-icon-button {
-    color:white;
-}
-
 .album-card:hover .album-cover {
     filter: blur(5px);
 }

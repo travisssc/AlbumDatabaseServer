@@ -9,65 +9,11 @@
 <div class="body">
     <div class="header-container">
         <h2 class="header">@listenedText</h2>
-        <div class="sort-container">
-            <div class="rating-sort">
-                <MudExpansionPanel Text="Rating" Style="width: 100%">
-                    <h3 class="sort-label rating" @onclick="() => ResetRateSort()">Any</h3>
-                    <MudRating @bind-SelectedValue="ratingSortValue" Size="Size.Small" Color="Color.Success" />
-                </MudExpansionPanel>
-            </div>
-            <div class="decade-sort">
-                <MudExpansionPanel Text="@decadeText">
-                    <div class="decades-container">
-                        <h3 class="sort-label" @onclick="() => DecadeSort(0)">All</h3>
-                        @foreach (var decade in decades)
-                        {
-                            <h3 class="sort-label" @onclick="() => DecadeSort(decade)">@decade's</h3>
-                        }
-                    </div>
-                </MudExpansionPanel>
-            </div>
-            <div class="genre-sort">
-                <MudExpansionPanel Text="@genreText">
-                    <div class="genres-container">
-                        <h3 class="sort-label" @onclick="() => ResetGenreSort()">Any</h3>
-                        @foreach (var genre in genres)
-                        {
-                            <h5 class="sort-label" @onclick="() => GenreSort(genre)">@genre.Name</h5>
-                        }
-                    </div>
-                </MudExpansionPanel>
-            </div>
-            <div class="main-sort">
-                <MudExpansionPanel Text="@sortText">
-                    <div class="general-sort-container">
-                        <div class="sort-type">
-                            <h3 class="sub-type name @((sortId == 0) ? "active" : "")" @onclick="() => GeneralSort(0)">Album Name</h3>
-                        </div>
-                        <div class="sort-type">
-                            <h3 class="sort-label-nofunc">Listen Date</h3>
-                            <h3 class="sub-type @((sortId == 1) ? "active" : "")" @onclick="() => GeneralSort(1)">Newest First</h3>
-                            <h3 class="sub-type @((sortId == 2) ? "active" : "")" @onclick="() => GeneralSort(2)">Earliest First</h3>
-                        </div>
-                        <div class="sort-type">
-                            <h3 class="sort-label-nofunc">Release Date</h3>
-                            <h3 class="sub-type @((sortId == 3) ? "active" : "")" @onclick="() => GeneralSort(3)">Newest First</h3>
-                            <h3 class="sub-type @((sortId == 4) ? "active" : "")" @onclick="() => GeneralSort(4)">Earliest First</h3>
-                        </div>
-                        <div class="sort-type">
-                            <h3 class="sort-label-nofunc">Average Rating</h3>
-                            <h3 class="sub-type @((sortId == 5) ? "active" : "")" @onclick="() => GeneralSort(5)">Highest First</h3>
-                            <h3 class="sub-type @((sortId == 6) ? "active" : "")" @onclick="() => GeneralSort(6)">Lowest First</h3>
-                        </div>
-                        <div class="sort-type">
-                            <h3 class="sort-label-nofunc">Your Rating</h3>
-                            <h3 class="sub-type @((sortId == 7) ? "active" : "")" @onclick="() => GeneralSort(7)">Highest First</h3>
-                            <h3 class="sub-type @((sortId == 8) ? "active" : "")" @onclick="() => GeneralSort(8)">Lowest First</h3>
-                        </div>
-                    </div>
-                </MudExpansionPanel>
-            </div>
-        </div>
+        <SortComponent allAlbums="@allListenedAlbums"
+                       listType="listened"
+                       totalPages="@totalPages"
+                       OnAlbumsChanged="HandleAlbumsChanged"
+                       OnTotalPagesChanged="HandleTotalPagesChanged" />
     </div>
 	<div class="album-container">
 		@if (listenedAlbums == null)
@@ -121,35 +67,11 @@
     private int pageIndex = 1;
     private int totalPages;
     private const int pageSize = 64;
-    private List<int> decades;
-    private List<Genre> genres = new();
     private Dictionary<int, int> albumRatings = new();
-    private Dictionary<int, DateTime> albumListenDates = new();
-    private string decadeText = "Decade";
-    private string genreText = "Genre";
-    private string sortText = "Sort by Listen Date"; // Default sort
-    private int selectedDecade = 0;
-    private bool isRatingSortActive = false;
-    private bool isDecadeSortActive = false;
-    private bool isGenreSortActive = false;
-    private int sortId = 1;
-    private int _ratingSortValue = 0;
-    private int ratingSortValue
-    {
-        get => _ratingSortValue;
-        set
-        {
-            if (_ratingSortValue != value)
-            {
-                _ratingSortValue = value;
-                _ = SortByRating(); // Trigger sorting
-            }
-        }
-    }
+
+
     protected override async Task OnInitializedAsync()
     {
-        decades = GenerateDecades(1900, DateTime.UtcNow.Year);
-        genres = GenreService.Genres;
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         if (user.Identity.IsAuthenticated)
@@ -168,12 +90,22 @@
                     var rating = await GetAlbumRating(album.AlbumId);
                     albumRatings[album.AlbumId] = rating;
                     var listenDate = await UserService.GetDateListened(userName, album.AlbumId);
-                    albumListenDates[album.AlbumId] = listenDate;
                 }
                 listenedAlbums = new List<Album>(allListenedAlbums); 
                 totalPages = (int)Math.Ceiling((double)listenedAlbums.Count / pageSize);
             }
         }
+    }
+    private void HandleAlbumsChanged(List<Album> newAlbums)
+    {
+        listenedAlbums = newAlbums;
+        SetPage(1);
+    }
+
+    private void HandleTotalPagesChanged(int newTotalPages)
+    {
+        totalPages = newTotalPages;
+        SetPage(1);
     }
     private List<Album> GetPaginatedAlbums()
     {
@@ -213,20 +145,18 @@
             pages.Add(-1);
             pages.Add(totalPages);
         }
-        else if (pageIndex >= totalPages - 2 && pageIndex < totalPages)
+        else if (pageIndex > 4 && pageIndex >= totalPages - 2 && pageIndex < totalPages)
         {
             pages.Add(1);
             pages.Add(-1);
             pages.AddRange(Enumerable.Range(pageIndex - 2, totalPages - pageIndex + 3));
         }
-        else
+        else if (pageIndex > 4 && pageIndex == totalPages)
         {
             pages.Add(1);
             pages.Add(-1);
             pages.AddRange(Enumerable.Range(pageIndex - 2, 3));
         }
-
-
         return pages;
     }
     private void HandleNavigation(Album album)
@@ -238,178 +168,5 @@
     private async Task<int> GetAlbumRating(int albumId)
     {
         return await UserService.GetRatingIntAsync(albumId, userName);
-    }
-    private async Task SortByRating()
-    {
-        listenedAlbums = new List<Album>(allListenedAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
-        if (isDecadeSortActive)
-        {
-            listenedAlbums = listenedAlbums
-                .Where(album => album.ReleaseDate.Year >= selectedDecade && album.ReleaseDate.Year < selectedDecade + 10)
-                .ToList();
-        }
-        if (isGenreSortActive)
-        {
-            listenedAlbums = listenedAlbums
-                .Where(album => album.AlbumGenres.Any(ag => ag.GenreId == genres.Find(g => g.Name == genreText).GenreId))
-                .ToList();
-        }
-        if (ratingSortValue > 0)
-        {
-            isRatingSortActive = true;
-            var ratedAlbums = await Task.WhenAll(
-                listenedAlbums.Select(async a =>
-                {
-                    if (a == null) throw new InvalidOperationException("Album is null.");
-                    var rating = await UserService.GetRatingIntAsync(a.AlbumId, userName);
-                    return new { Album = a, Rating = rating };
-                })
-            );
-
-            listenedAlbums = ratedAlbums
-                .Where(x => x.Rating == ratingSortValue)
-                .Select(x => x.Album)
-                .ToList();
-        }
-
-        totalPages = (int)Math.Ceiling((double)listenedAlbums.Count / pageSize);
-        SetPage(1);
-        StateHasChanged();
-    }
-    private async Task ResetRateSort()
-    {
-        isRatingSortActive = false;
-        ratingSortValue = 0;
-        await SortByRating();
-    }
-    private List<int> GenerateDecades(int startYear, int currentYear)
-    {
-        var decadesList = new List<int>();
-        int latestDecade = (currentYear / 10) * 10;
-        for (int year = latestDecade; year >= startYear; year -= 10)
-        {
-            decadesList.Add(year);
-        }
-        return decadesList;
-
-    }
-    private void DecadeSort(int decade)
-    {
-        listenedAlbums = new List<Album>(allListenedAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
-        if (isRatingSortActive)
-        {
-            var ratedAlbums = listenedAlbums
-                .Where(album => albumRatings.TryGetValue(album.AlbumId, out int rating) && rating == ratingSortValue)
-                .ToList();
-
-            listenedAlbums = ratedAlbums;
-        }
-        if (isGenreSortActive)
-        {
-            listenedAlbums = listenedAlbums
-                .Where(album => album.AlbumGenres.Any(ag => ag.GenreId == genres.Find(g => g.Name == genreText).GenreId))
-                .ToList();
-        }
-        if (decade > 0)
-        {
-            selectedDecade = decade;
-            isDecadeSortActive = true;
-            decadeText = $"{decade}'s";
-            listenedAlbums = listenedAlbums
-                .Where(album => album.ReleaseDate.Year >= decade && album.ReleaseDate.Year < decade + 10)
-                .ToList();
-        }
-        else
-        {
-            isDecadeSortActive = false;
-            decadeText = "Decade";
-            totalPages = (int)Math.Ceiling((double)allListenedAlbums.Count / pageSize);
-        }
-
-        totalPages = (int)Math.Ceiling((double)listenedAlbums.Count / pageSize);
-        SetPage(1);
-        StateHasChanged();
-    }
-    private void ResetGenreSort()
-    {
-        listenedAlbums = new List<Album>(allListenedAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
-        genreText = "Genre";
-        isGenreSortActive = false;
-        totalPages = (int)Math.Ceiling((double)listenedAlbums.Count / pageSize);
-        StateHasChanged();
-
-    }
-    private void GenreSort(Genre genre)
-    {
-        isGenreSortActive = true;
-        listenedAlbums = new List<Album>(allListenedAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
-        if (isRatingSortActive)
-        {
-            var ratedAlbums = listenedAlbums
-                .Where(album => albumRatings.TryGetValue(album.AlbumId, out int rating) && rating == ratingSortValue)
-                .ToList();
-
-            listenedAlbums = ratedAlbums;
-        }
-        if (isDecadeSortActive)
-        {
-            listenedAlbums = listenedAlbums
-                .Where(album => album.ReleaseDate.Year >= selectedDecade && album.ReleaseDate.Year < selectedDecade + 10)
-                .ToList();
-        }
-        genreText = genre.Name;
-        listenedAlbums = listenedAlbums
-            .Where(album => album.AlbumGenres.Any(ag => ag.GenreId == genre.GenreId))
-            .ToList();
-        totalPages = (int)Math.Ceiling((double)listenedAlbums.Count / pageSize);
-        SetPage(1);
-        StateHasChanged();
-    }
-    private void GeneralSort(int id)
-    {
-        sortId = id;
-        switch (id)
-		{
-			case 0:
-				listenedAlbums = listenedAlbums.OrderBy(a => a.Name).ToList();
-				sortText = "Sort by Album Name";
-				break;
-			case 1:
-				listenedAlbums = listenedAlbums.OrderByDescending(a => albumListenDates[a.AlbumId]).ToList();
-				sortText = "Sort by Listen Date";
-				break;
-			case 2:
-                listenedAlbums = listenedAlbums.OrderBy(a => albumListenDates[a.AlbumId]).ToList();
-				sortText = "Sort by Listen Date";
-				break;
-			case 3:
-				listenedAlbums = listenedAlbums.OrderByDescending(a => a.ReleaseDate).ToList();
-				sortText = "Sort by Release Date";
-				break;
-			case 4:
-				listenedAlbums = listenedAlbums.OrderBy(a => a.ReleaseDate).ToList();
-				sortText = "Sort by Release Date";
-				break;
-			case 5:
-				listenedAlbums = listenedAlbums.OrderByDescending(a => AlbumService.GetAverageRating(a.AlbumId)).ToList();
-				sortText = "Sort by Average Rating";
-				break;
-			case 6:
-				listenedAlbums = listenedAlbums.OrderBy(a => AlbumService.GetAverageRating(a.AlbumId)).ToList();
-				sortText = "Sort by Average Rating";
-				break;
-			case 7:
-				listenedAlbums = listenedAlbums.OrderByDescending(a => albumRatings[a.AlbumId]).ToList();
-				sortText = "Sort by Your Rating";
-				break;
-			case 8:
-				listenedAlbums = listenedAlbums.OrderBy(a => albumRatings[a.AlbumId]).ToList();
-				sortText = "Sort by Your Rating";
-				break;
-		}
     }
 }

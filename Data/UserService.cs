@@ -137,6 +137,13 @@ namespace AlbumDatabaseServer.Data
 				.OrderByDescending(f => f.DateFavorited)
 				.ToListAsync();
 		}
+        public async Task<DateTime> GetDateFavorited(string userName, int albumId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            var favoritedAlbum = await context.FavoriteAlbums
+                .FirstOrDefaultAsync(l => l.AlbumId == albumId && l.UserName == userName);
+            return favoritedAlbum?.DateFavorited ?? DateTime.MinValue;
+        }
         // QUEUE FUNCTIONS
 
         public async Task<bool> IsAlbumQueuedAsync(int albumId, string userName)
@@ -182,8 +189,15 @@ namespace AlbumDatabaseServer.Data
 				.OrderByDescending(f => f.DateAdded)
 				.ToListAsync();
 		}
-		// RATING FUNCTIONS
-		public async Task<AlbumRating> GetRatingAsync(int albumId, string userName)
+        public async Task<DateTime> GetDateQueued(string userName, int albumId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            var queuedAlbum = await context.AccountQueue
+                .FirstOrDefaultAsync(l => l.AlbumId == albumId && l.UserName == userName);
+            return queuedAlbum?.DateAdded ?? DateTime.MinValue;
+        }
+        // RATING FUNCTIONS
+        public async Task<AlbumRating> GetRatingAsync(int albumId, string userName)
         {
 			using var context = _dbContextFactory.CreateDbContext();
             return await context.AlbumRatings

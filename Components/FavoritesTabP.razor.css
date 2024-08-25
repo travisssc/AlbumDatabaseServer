@@ -1,2 +1,75 @@
-﻿body {
+﻿.body {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.album-container {
+    z-index: 1;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    width: 1136px;
+    background: #121212;
+    padding: 8px;
+    border-radius: 10px;
+}
+
+.album-cover-img {
+    width: 128px;
+    border-radius: 5px;
+    margin: 6px 6px 0px 6px;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s;
+    box-sizing: border-box;
+    border: 3px solid transparent;
+}
+
+.album-cover-img:hover {
+    cursor: pointer;
+    transform: translateY(-4px);
+    border: 3px solid white;
+}
+
+.pagination-controls {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.pagination-controls button {
+    padding: 5px 10px;
+    cursor: pointer;
+    color: white;
+}
+
+.pagination-controls .active-page {
+    font-weight: bold;
+    color: #535353;
+}
+
+.pagination-controls .ellipsis {
+    padding: 5px 10px;
+    cursor: default;
+}
+
+.star-container {
+    display: flex;
+    align-items: center;
+    padding: 2px 0px 8px 8px;
+}
+
+.star {
+    font-variation-settings: 'FILL' 1;
+    color: #b3b3b3;
+    padding: 0px;
+    margin: -1px;
+    font-size: 80%;
 }

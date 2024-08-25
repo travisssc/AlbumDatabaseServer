@@ -8,47 +8,50 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 @if (!string.IsNullOrEmpty(album.AlbumCover))
 {
-	<div class="album-card" @onclick="() => HandleNavigation(album)">
+	<div class="album-card @(displayInfo ? "album-card-large" : "album-card-small") " @onclick="() => HandleNavigation(album)">
 		<div class="album-card-content">
 			<img src="@album.AlbumCover" class="album-cover" />
 			<div class="album-menu">
 				<button class="function-button"
-						@onclick="ToggleListen">
+						@onclick:stopPropagation="true" @onclick="ToggleListen">
 					<span class="material-symbols-outlined icon listen @(isListened ? "active" : "")">
 						album
 					</span>
 				</button>
 				<button class="function-button"
-						@onclick="ToggleFavorite">
+						@onclick:stopPropagation="true" @onclick="ToggleFavorite">
 					<span class="material-symbols-outlined icon fav @(isFavorited ? "active" : "")">
 						favorite
 					</span>
 				</button>
 				<button class="function-button"
-						@onclick="ToggleQueue">
+						@onclick:stopPropagation="true" @onclick="ToggleQueue">
 					<span class="material-symbols-outlined icon q @(isQueued ? "active" : "")">
 						@(isQueued ? "playlist_add_check_circle" : "playlist_add_circle")
 					</span>
 				</button>
 			</div>
-			<div class="album-info">
-				@if (!string.IsNullOrEmpty(album.Name))
-				{
-					<subtitle1 class="album-title">@album.Name</subtitle1>
-				}
-				else
-				{
-					<subtitle1>Album name is missing!</subtitle1>
-				}
-				@if (album.Artist != null && !string.IsNullOrEmpty(album.Artist.ArtistName))
-				{
-					<body2 class="album-artist">@album.Artist.ArtistName</body2>
-				}
-				else
-				{
-					<subtitle1>Artist name is missing!</subtitle1>
-				}
-			</div>
+			@if (displayInfo)
+			{
+				<div class="album-info">
+					@if (!string.IsNullOrEmpty(album.Name))
+					{
+						<subtitle1 class="album-title">@album.Name</subtitle1>
+					}
+					else
+					{
+						<subtitle1>Album name is missing!</subtitle1>
+					}
+					@if (album.Artist != null && !string.IsNullOrEmpty(album.Artist.ArtistName))
+					{
+						<body2 class="album-artist">@album.Artist.ArtistName</body2>
+					}
+					else
+					{
+						<subtitle1>Artist name is missing!</subtitle1>
+					}
+				</div>
+			}
 		</div>
 	</div>
 }
@@ -59,8 +62,8 @@ else
 
 
 @code {
-	[Parameter]
-	public Album album { get; set; }
+	[Parameter] public Album album { get; set; }
+	[Parameter] public bool displayInfo { get; set; } = true;
 	private bool isListened = false;
 	private bool isFavorited = false;
 	private bool isQueued = false;
@@ -81,7 +84,7 @@ else
 			}
 		}
 	}
-	private async Task ToggleListen()
+	public async Task ToggleListen()
 	{
 		if (!string.IsNullOrEmpty(userName) && album != null)
 		{
@@ -93,7 +96,7 @@ else
 			}
 		}
 	}
-	private async Task ToggleFavorite()
+	public async Task ToggleFavorite()
 	{
 		if (!string.IsNullOrEmpty(userName) && album != null)
 		{
@@ -101,7 +104,7 @@ else
 			isFavorited = !isFavorited;
 		}
 	}
-	private async Task ToggleQueue()
+	public async Task ToggleQueue()
 	{
 		if (!string.IsNullOrEmpty(userName) && album != null)
 		{
