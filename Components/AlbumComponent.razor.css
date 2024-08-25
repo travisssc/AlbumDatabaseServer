@@ -1,15 +1,43 @@
-﻿
-::deep .album-card {
+﻿.album-cover:hover {
+    filter: blur(2px);
+}
+.album-menu:hover {
+    opacity: 1;
+}
+
+.album-card:hover {
+    background: #535353;
+    cursor: pointer;
+}
+.album-card {
     width: 198px;
     height: 267px;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    border-radius: 8px;
     margin: 0;
     padding: 0;
     position: relative;
+    background: #121212;
+    transition: background ease 0.2s;
 }
-
-::deep .album-card-content {
+.album-card::before {
+    border-radius: 8px;
+    content: '';
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    border: 3px solid transparent;
+    transition: border-color 0.2s ease;
+    z-index: 2;
+}
+.album-card:hover::before {
+    border-color: white;
+}
+.album-card-content {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -17,25 +45,29 @@
     margin: 0;
     padding: 0;
     position: relative;
+    border-radius: 8px;
 }
 
-::deep .album-cover {
+.album-cover {
     width: 100%;
     height: 200px;
     margin: 0;
     padding: 0;
     object-fit: cover;
     transition: filter 0.3s ease;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    clip-path: inset(0 0 0 0 round 8px);
 }
 
-::deep .album-info {
-    padding: 8px;
+.album-info {
+    padding: 12px 8px 8px 8px;
     flex: 0 0 auto;
     position: relative;
     overflow: hidden;
 }
 
-::deep .album-title, ::deep .album-artist {
+.album-title, .album-artist {
     white-space: nowrap; /* Prevent text from wrapping */
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Add ellipsis (...) */
@@ -43,7 +75,7 @@
     width: 100%; /* Ensure it takes the full width */
 }
 
-::deep .album-menu {
+.album-menu {
     position: absolute;
     top: 0;
     left: 0;
@@ -55,16 +87,47 @@
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 2;
+    top: 60px;
+    top: 60px;
 }
 
-::deep .album-menu .mud-icon-button {
+.album-menu .mud-icon-button {
     color:white;
 }
 
-::deep .album-container:hover .album-cover {
+.album-card:hover .album-cover {
     filter: blur(5px);
 }
 
-::deep .album-container:hover .album-menu {
+.album-card:hover .album-menu {
     opacity: 1;
+}
+.icon {
+    color: white;
+    transition: color 0.2s ease;
+    font-size: 36px;
+    padding: 8px 8px 8px 8px;
+    background: rgba(0, 0, 0, 0.4);
+}
+.listen {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+.q {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+.listen.active {
+    color: #3ec945;
+    font-variation-settings: 'FILL' 1;
+}
+
+.fav.active {
+    color: #d43b3b;
+    font-variation-settings: 'FILL' 1;
+}
+
+.q.active {
+    color: #3BADE1;
+    font-variation-settings: 'FILL' 1;
 }

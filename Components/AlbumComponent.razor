@@ -1,60 +1,118 @@
 ﻿@using AlbumDatabaseServer.Data
-<style>
-	.album-container {
-		position: relative;
-	}
-	.album-container:hover .album-cover {
-		filter: blur(2px);
-	}
+@using AlbumDatabaseServer.Data
+@inject AlbumService AlbumService
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
-	.album-container:hover .album-menu {
-		opacity: 1;
-	}
-
-	.album-container:hover .album-card {
-		background-color: #535353
-	}
-</style>
-<div class="album-container">
-	@if (!string.IsNullOrEmpty(Album.AlbumCover))
-	{
-		<MudCard Class="album-card rounded-lg">
-			<MudCardContent Class="album-card-content pa-0 rounded-lg">
-				<MudCardMedia Image="@Album.AlbumCover" Class="album-cover"/>
-					<div class="album-menu">
-						<MudIconButton Icon="@Icons.Material.Filled.Add" />
-						<MudIconButton Icon="@Icons.Material.Filled.Favorite" />
-						<MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" />
-					</div>
-				<div class="album-info">
-					@if (!string.IsNullOrEmpty(Album.Name))
-					{
-						<MudText Typo="Typo.subtitle1" Class="album-title">@Album.Name</MudText>
-					}
-					else
-					{
-						<MudText Color="Color.Error">Album name is missing!</MudText>
-					}
-					@if (Album.Artist != null && !string.IsNullOrEmpty(Album.Artist.ArtistName))
-					{
-						<MudText Typo="Typo.body2" Class="album-artist">@Album.Artist.ArtistName</MudText>
-					}
-					else
-					{
-						<MudText Color="Color.Error">Artist name is missing!</MudText>
-					}
-				</div>
-			</MudCardContent>
-		</MudCard>
-	}
-	else
-	{
-		<MudText Color="Color.Error">Album cover is missing!</MudText>
-	}
-</div>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+@if (!string.IsNullOrEmpty(album.AlbumCover))
+{
+	<div class="album-card" @onclick="() => HandleNavigation(album)">
+		<div class="album-card-content">
+			<img src="@album.AlbumCover" class="album-cover" />
+			<div class="album-menu">
+				<button class="function-button"
+						@onclick="ToggleListen">
+					<span class="material-symbols-outlined icon listen @(isListened ? "active" : "")">
+						album
+					</span>
+				</button>
+				<button class="function-button"
+						@onclick="ToggleFavorite">
+					<span class="material-symbols-outlined icon fav @(isFavorited ? "active" : "")">
+						favorite
+					</span>
+				</button>
+				<button class="function-button"
+						@onclick="ToggleQueue">
+					<span class="material-symbols-outlined icon q @(isQueued ? "active" : "")">
+						@(isQueued ? "playlist_add_check_circle" : "playlist_add_circle")
+					</span>
+				</button>
+			</div>
+			<div class="album-info">
+				@if (!string.IsNullOrEmpty(album.Name))
+				{
+					<subtitle1 class="album-title">@album.Name</subtitle1>
+				}
+				else
+				{
+					<subtitle1>Album name is missing!</subtitle1>
+				}
+				@if (album.Artist != null && !string.IsNullOrEmpty(album.Artist.ArtistName))
+				{
+					<body2 class="album-artist">@album.Artist.ArtistName</body2>
+				}
+				else
+				{
+					<subtitle1>Artist name is missing!</subtitle1>
+				}
+			</div>
+		</div>
+	</div>
+}
+else
+{
+	<subtitle1>Album cover is missing!</subtitle1>
+}
 
 
 @code {
 	[Parameter]
-	public Album Album { get; set; }
+	public Album album { get; set; }
+	private bool isListened = false;
+	private bool isFavorited = false;
+	private bool isQueued = false;
+	private string userName;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		if (user.Identity.IsAuthenticated)
+		{
+			userName = user.Identity.Name;
+			if (album != null)
+			{
+				isListened = await UserService.IsAlbumListenedAsync(album.AlbumId, userName);
+				isFavorited = await UserService.IsAlbumFavoritedAsync(album.AlbumId, userName);
+				isQueued = await UserService.IsAlbumQueuedAsync(album.AlbumId, userName);
+			}
+		}
+	}
+	private async Task ToggleListen()
+	{
+		if (!string.IsNullOrEmpty(userName) && album != null)
+		{
+			await UserService.ToggleListenAsync(album.AlbumId, userName);
+			isListened = !isListened;
+			if (isQueued && isListened)
+			{
+				ToggleQueue();
+			}
+		}
+	}
+	private async Task ToggleFavorite()
+	{
+		if (!string.IsNullOrEmpty(userName) && album != null)
+		{
+			await UserService.ToggleFavoriteAsync(album.AlbumId, userName);
+			isFavorited = !isFavorited;
+		}
+	}
+	private async Task ToggleQueue()
+	{
+		if (!string.IsNullOrEmpty(userName) && album != null)
+		{
+			await UserService.ToggleQueueAsync(album.AlbumId, userName);
+			isQueued = !isQueued;
+		}
+	}
+	private void HandleNavigation(Album album)
+	{
+		var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
+		var encodedAlbumName = Uri.EscapeDataString(album.Name);
+		NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
+	}
 }

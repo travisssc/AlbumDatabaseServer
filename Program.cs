@@ -28,6 +28,7 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<AlbumService>();
 builder.Services.AddSingleton<SongService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddSingleton<GenreService>();
 
 
 var app = builder.Build();

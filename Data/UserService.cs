@@ -2,6 +2,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AlbumDatabaseServer.Data
 {
@@ -200,7 +201,7 @@ namespace AlbumDatabaseServer.Data
         {
 			using var context = _dbContextFactory.CreateDbContext();
 			var albumRating = await GetRatingAsync(albumId, userName);
-            if (albumRating.Rating != 0)
+            if (albumRating != null)
             {
                 albumRating.Rating = rating;
                 albumRating.DateRated = DateTime.UtcNow;
