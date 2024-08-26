@@ -115,9 +115,10 @@ else
     private string _reviewText = "";
     private bool isReviewed = false;
     private bool isRated = false;
-    private int _currentRating = 0;
     private decimal averageRating = 0;
     private int ratingCount = 0;
+    private bool isInitialized = false;
+    private int _currentRating = 0;
     private int currentRating
     {
         get => _currentRating;
@@ -126,7 +127,10 @@ else
             if (_currentRating != value)
             {
                 _currentRating = value;
-                SubmitRating(_currentRating);
+                if (isInitialized)
+                {
+                    SubmitRating(_currentRating);
+                }
             }
         }
     }
@@ -165,6 +169,7 @@ else
                 hoverQueue = isQueued ? "In Queue" : "Queue";
             }
         }
+        isInitialized = true;
     }
 
     private async Task LoadAlbumDetails(string decodedArtistName, string decodedAlbumName)

@@ -94,6 +94,7 @@ else
 			{
 				ToggleQueue();
 			}
+			StateHasChanged();
 		}
 	}
 	public async Task ToggleFavorite()
@@ -102,6 +103,7 @@ else
 		{
 			await UserService.ToggleFavoriteAsync(album.AlbumId, userName);
 			isFavorited = !isFavorited;
+			StateHasChanged();
 		}
 	}
 	public async Task ToggleQueue()
@@ -110,6 +112,7 @@ else
 		{
 			await UserService.ToggleQueueAsync(album.AlbumId, userName);
 			isQueued = !isQueued;
+			StateHasChanged();
 		}
 	}
 	private void HandleNavigation(Album album)

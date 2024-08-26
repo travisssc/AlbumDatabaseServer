@@ -1,0 +1,81 @@
+﻿.container {
+    max-width: 1280px;
+    padding-left: 24px;
+    padding-right: 24px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 8px;
+    background: #121212;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+.header-text {
+    padding-top: 32px;
+}
+.divider {
+    border: 1px solid #212121;
+    margin: 5px 0px 16px 0px;
+}
+.input-container {
+    display: flex;
+    justify-content: space-between;
+}
+.list-info {
+    width: 100%;
+    padding-left: 16px;
+}
+.list-description {
+    width: 100%;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 16px 0px;
+}
+.input-label {
+    padding-bottom: 4px;
+}
+.search-with-button {
+    display: flex;
+}
+.button {
+    padding: 8px 16px 8px 16px;
+    border-radius: 4px;
+    background: #3BADE1;
+    color: white;
+}
+.button.save {
+    margin-left: 8px;
+}
+.list-group {
+    background: #535353;
+    padding: 8px;
+    border-radius: 4px;
+    width: 255.33px;
+    height: 256px;
+    overflow: scroll;
+    position: absolute;
+    margin-top: 66.2px;
+}
+.list-group-item {
+    padding: 8px;
+}
+.list-group-item:hover {
+    background: #3BADE1;
+    cursor: pointer;
+}
+.album-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    padding-top: 16px;
+}
+.list-item {
+    display: flex;
+    flex-direction: column;
+}
+.album-cover {
+    height: 150px;
+    width: 150px;
+    border-radius: 4px;
+}

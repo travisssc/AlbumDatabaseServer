@@ -1,2 +1,15 @@
-﻿body {
+﻿.no-lists-dialogue {
+    display: flex;
+    border: 2px #b3b3b3 solid;
+    border-radius: 8px;
+    width: 856px;
+    height: 230px;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+.button-create-list {
+    margin-left: 8px;
+    color: #3BADE1;
+    cursor: pointer;
 }

@@ -1,0 +1,121 @@
+﻿@page "/list/new"
+@using AlbumDatabaseServer.Data
+@inject UserService UserService
+@inject AlbumService AlbumService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="container">
+    <h1 class="header-text">New List</h1>
+    <hr class="divider" />
+    <EditForm Model="@newList" OnValidSubmit="@CreateListAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="input-container">
+            <div class="list-info">
+                <div class="form-group">
+                    <label for="listName" class="input-label">List Name</label>
+                    <InputText id="listName" class="form-control" @bind-Value="newList.ListName" />
+                </div>
+                <div class="form-group">
+                    <label for="albumSearch" class="input-label">Add Albums</label>
+                    <div class="search-with-button">
+                        <InputText id="albumSearch" class="form-control" @bind-Value="albumSearchQuery"
+                            @oninput="SearchAlbums" placeholder="Search for albums..." />
+                        <button type="button" class="button">Add Album</button>
+                        <button type="submit" class="button save">Save</button>
+                    </div>
+                    @if (searchResults != null && searchResults.Any())
+                    {
+                        <ul class="list-group">
+                            @foreach (var album in searchResults)
+                            {
+                                <li class="list-group-item" @onclick="() => AddAlbumToList(album)">
+                                    @album.Name (@album.ReleaseDate.Year) - @album.Artist.ArtistName
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+                @if (newListAlbums.Any())
+                {
+                    <div class="album-list" id="album-list">
+                        @foreach (var listAlbum in newListAlbums)
+                        {
+                            <div class="list-item" data-id="@listAlbum.AlbumId">
+                                <img class="album-cover" src="@listAlbum.AlbumCover" />
+                                @*<h4>@listAlbum.Position</h4>*@
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="list-description">
+                <div class="form-group">
+                    <label for="description" class="input-label">Description</label>
+                    <InputTextArea id="description" class="form-control description" @bind-Value="newList.Description" />
+                </div>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+
+@code {
+    private AlbumLists newList = new AlbumLists();
+    private List<Album> searchResults = new List<Album>();
+    private List<Album> newListAlbums = new List<Album>();
+    private string albumSearchQuery = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            newList.UserId = user.Identity.Name;
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+    }
+
+    private async Task SearchAlbums(ChangeEventArgs e)
+    {
+        albumSearchQuery = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(albumSearchQuery))
+        {
+            searchResults = await AlbumService.SearchAlbumsAsync(albumSearchQuery);
+        }
+        else
+        {
+            searchResults.Clear();
+        }
+    }
+
+    private void AddAlbumToList(Album album)
+    {
+        if (!newListAlbums.Contains(album))
+        {
+            newListAlbums.Add(album);
+        }
+    }
+
+    private void RemoveAlbumFromList(Album album)
+    {
+        newListAlbums.Remove(album);
+    }
+
+    private async Task CreateListAsync()
+    {
+        newList.ListAlbums = newListAlbums.Select((album, index) => new ListAlbum
+            {
+                AlbumId = album.AlbumId,
+                Position = index + 1
+            }).ToList();
+
+        //await AlbumService.CreateListAsync(newList);
+        NavigationManager.NavigateTo("/profile/lists"); // Redirect to the lists page after creation
+    }
+}

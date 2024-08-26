@@ -87,7 +87,7 @@
                 favoritedText = $"You've favorited {allFavoriteAlbums.Count()} albums";
                 foreach (var album in allFavoriteAlbums)
                 {
-                    var rating = await GetAlbumRating(album.AlbumId);
+                    var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName); ;
                     albumRatings[album.AlbumId] = rating;
                 }
                 favoriteAlbums = new List<Album>(allFavoriteAlbums);
@@ -165,9 +165,5 @@
         var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
         var encodedAlbumName = Uri.EscapeDataString(album.Name);
         NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
-    }
-    private async Task<int> GetAlbumRating(int albumId)
-    {
-        return await UserService.GetRatingIntAsync(albumId, userName);
     }
 }

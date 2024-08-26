@@ -87,9 +87,9 @@
                 listenedText = $"You've listened to {allListenedAlbums.Count()} albums";
                 foreach (var album in allListenedAlbums)
                 {
-                    var rating = await GetAlbumRating(album.AlbumId);
+                    var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
                     albumRatings[album.AlbumId] = rating;
-                    var listenDate = await UserService.GetDateListened(userName, album.AlbumId);
+                    var listenDate = await UserService.GetDateListenedAsync(userName, album.AlbumId);
                 }
                 listenedAlbums = new List<Album>(allListenedAlbums); 
                 totalPages = (int)Math.Ceiling((double)listenedAlbums.Count / pageSize);
@@ -164,9 +164,5 @@
         var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
         var encodedAlbumName = Uri.EscapeDataString(album.Name);
         NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
-    }
-    private async Task<int> GetAlbumRating(int albumId)
-    {
-        return await UserService.GetRatingIntAsync(albumId, userName);
     }
 }

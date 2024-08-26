@@ -42,6 +42,17 @@
 					}
 				}
 			</div>
+			@if (reviewedAlbums != null)
+			{
+				<h3>Recent Reviews</h3>
+				<hr class="divider" />
+				<div class="review-container">
+					@foreach (var album in reviewedAlbums)
+					{
+						<ReviewCard album="album" width="profile"/>
+					}
+				</div>
+			} 
 		</div>
 		<div class="side-panel">
 			<div class="text-container">
@@ -50,7 +61,7 @@
 			</div>
 			<hr class="divider" />
 			<div class="display-container">
-				<QueueDisplay Username="@userName" />
+				<ListDisplay Username="@userName" />
 			</div>
 			<div class="text-container">
 				<h3>Ratings</h3>
@@ -89,6 +100,7 @@
 	private string userName;
 	private List<Album> favoriteAlbums;
 	private List<Album> listenedAlbums;
+	private List<Album> reviewedAlbums;
 	private int queueCount = 0;
 	private int ratingCount = 0;
 	public List<ChartSeries> ratingChartSeries = new List<ChartSeries>();
@@ -102,9 +114,10 @@
 			userName = user.Identity.Name;
 			var favoriteAlbumsList = await UserService.GetFavoriteAlbumsAsync(userName);
 			var listenedAlbumsList = await UserService.GetListenedAlbumsAsync(userName);
-			queueCount = await UserService.GetQueueCount(userName);
-			ratingCount = await UserService.GetRatingCount(userName);
-			var ratingNumbers = await UserService.GetRatingDistribution(userName);
+			var reviewedAlbumsList = await UserService.GetReviewedAlbumsAsync(userName);
+			queueCount = await UserService.GetQueueCountAsync(userName);
+			ratingCount = await UserService.GetRatingCountAsync(userName);
+			var ratingNumbers = await UserService.GetRatingDistributionAsync(userName);
 			userActivities = await UserService.GetUserActivitiesAsync(userName);
 			foreach (var activity in userActivities)
 			{
@@ -125,7 +138,7 @@
 			double[] ratingDistribution = { 0, 0, 0, 0, 0 };
 			foreach (var val in ratingNumbers)
 			{
-				    ratingDistribution[(int)val - 1]++;
+				ratingDistribution[(int)val - 1]++;
 			}
 			ratingChartSeries = new List<ChartSeries>()
 			{
@@ -145,6 +158,14 @@
 					.Select(listened => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == listened.AlbumId))
 					.Where(album => album != null)
 					.Take(4)
+					.ToList();
+			}
+			if (reviewedAlbumsList.Any())
+			{
+				reviewedAlbums = reviewedAlbumsList
+					.Select(review => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == review.AlbumId))
+					.Where(album => album != null)
+					.Take(2)
 					.ToList();
 			}
 		}

@@ -50,9 +50,13 @@
                     {
                         <h3 class="sort-label-nofunc">Queue Date</h3>
                     }
-                    else
+                    else if (listType == "favorited")
                     {
                         <h3 class="sort-label-nofunc">Favorite Date</h3>
+                    }
+                    else if (listType == "reviewed")
+					{
+						<h3 class="sort-label-nofunc">Review Date</h3>
                     }
                     <h3 class="sub-type @((sortId == 1) ? "active" : "")" @onclick="() => GeneralSort(1)">Newest First</h3>
                     <h3 class="sub-type @((sortId == 2) ? "active" : "")" @onclick="() => GeneralSort(2)">Earliest First</h3>
@@ -91,6 +95,7 @@
     private Dictionary<int, DateTime> albumListenDates = new();
     private Dictionary<int, DateTime> albumQueueDates = new();
     private Dictionary<int, DateTime> albumFavoriteDates = new();
+    private Dictionary<int, DateTime> albumReviewDates = new();
     private string decadeText = "Decade";
     private string genreText = "Genre";
     private string sortText = "Sort by Listen Date"; // Default sort
@@ -131,7 +136,7 @@
                 {
                     var rating = await GetAlbumRating(album.AlbumId);
                     albumRatings[album.AlbumId] = rating;
-                    var queueDate = await UserService.GetDateQueued(userName, album.AlbumId);
+                    var queueDate = await UserService.GetDateQueuedAsync(userName, album.AlbumId);
                     albumQueueDates[album.AlbumId] = queueDate;
                 }
                 sortText = "Sort by Queue Date";
@@ -140,9 +145,8 @@
             {
                 foreach (var album in allAlbums)
                 {
-                    var rating = await GetAlbumRating(album.AlbumId);
-                    albumRatings[album.AlbumId] = rating;
-                    var listenDate = await UserService.GetDateListened(userName, album.AlbumId);
+
+                    var listenDate = await UserService.GetDateListenedAsync(userName, album.AlbumId);
                     albumListenDates[album.AlbumId] = listenDate;
                 }
                 sortText = "Sort by Listen Date";
@@ -153,10 +157,21 @@
                 {
                     var rating = await GetAlbumRating(album.AlbumId);
                     albumRatings[album.AlbumId] = rating;
-                    var favoriteDate = await UserService.GetDateFavorited(userName, album.AlbumId);
+                    var favoriteDate = await UserService.GetDateFavoritedAsync(userName, album.AlbumId);
                     albumFavoriteDates[album.AlbumId] = favoriteDate;
                 }
                 sortText = "Sort by Favorite Date";
+            }
+            else if (listType == "reviewed")
+            {
+                foreach (var album in allAlbums)
+                {
+                    var rating = await GetAlbumRating(album.AlbumId);
+                    albumRatings[album.AlbumId] = rating;
+                    var reviewDate = await UserService.GetDateReviewedAsync(userName, album.AlbumId);
+                    albumReviewDates[album.AlbumId] = reviewDate;
+                }
+                sortText = "Sort by Review Date";
             }
             albums = new List<Album>(allAlbums);
             totalPages = (int)Math.Ceiling(albums.Count() / 10.0);
@@ -318,10 +333,19 @@
                     albums = albums.OrderByDescending(a => albumQueueDates[a.AlbumId]).ToList();
                     sortText = "Sort by Queue Date";
                 }
-                else
+                else if (listType == "favorited")
                 {
                     albums = albums.OrderByDescending(a => albumFavoriteDates[a.AlbumId]).ToList();
                     sortText = "Sort by Favorite Date";
+                }
+                else if (listType == "reviewed")
+                {
+                    albums = albums.OrderByDescending(a => albumReviewDates[a.AlbumId]).ToList();
+                    sortText = "Sort by Review Date";
+                }
+                else
+                {
+                    sortText = "ERROR: Invalid list type.";
                 }
                 break;
             case 2:
@@ -338,7 +362,16 @@
                 else if (listType == "favorited")
                 {
                     albums = albums.OrderBy(a => albumFavoriteDates[a.AlbumId]).ToList();
-					sortText = "Sort by Favorite Date";
+                    sortText = "Sort by Favorite Date";
+                }
+                else if (listType == "reviewed")
+                {
+                    albums = albums.OrderBy(a => albumReviewDates[a.AlbumId]).ToList();
+                    sortText = "Sort by Review Date";
+                }
+                else
+                {
+                    sortText = "ERROR: Invalid list type.";
                 }
                 break;
             case 3:

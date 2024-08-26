@@ -66,4 +66,19 @@ public class AlbumService
         return context.AlbumRatings
             .Count(r => r.AlbumId == albumId);
     }
+	public async Task<List<Album>> SearchAlbumsAsync(string searchQuery)
+	{
+		if (string.IsNullOrWhiteSpace(searchQuery))
+		{
+			return new List<Album>();
+		}
+		using var context = _dbFactory.CreateDbContext();
+		var loweredQuery = searchQuery.ToLower();
+		var results = await context.Albums
+			.Include(a => a.Artist)
+			.Where(a => a.Name.ToLower().Contains(loweredQuery)
+				|| a.Artist.ArtistName.ToLower().Contains(loweredQuery))
+			.ToListAsync();
+		return results;
+	}
 }

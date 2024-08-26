@@ -3,6 +3,7 @@ using System;
 using AlbumDatabaseServer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AlbumDatabaseServer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240826012307_Lists")]
+    partial class Lists
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,37 +103,6 @@ namespace AlbumDatabaseServer.Migrations
                     b.HasIndex("AlbumId");
 
                     b.ToTable("AlbumGenres");
-                });
-
-            modelBuilder.Entity("AlbumDatabaseServer.Data.AlbumLists", b =>
-                {
-                    b.Property<int>("ListId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ListId"));
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DateUpdated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ListName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("ListId");
-
-                    b.ToTable("Lists");
                 });
 
             modelBuilder.Entity("AlbumDatabaseServer.Data.AlbumRating", b =>
@@ -274,32 +246,6 @@ namespace AlbumDatabaseServer.Migrations
                     b.HasKey("GenreId");
 
                     b.ToTable("Genres");
-                });
-
-            modelBuilder.Entity("AlbumDatabaseServer.Data.ListAlbum", b =>
-                {
-                    b.Property<int>("ListAlbumId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ListAlbumId"));
-
-                    b.Property<int>("AlbumId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ListId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Position")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ListAlbumId");
-
-                    b.HasIndex("AlbumId");
-
-                    b.HasIndex("ListId");
-
-                    b.ToTable("ListAlbum");
                 });
 
             modelBuilder.Entity("AlbumDatabaseServer.Data.ListenedAlbums", b =>
@@ -683,25 +629,6 @@ namespace AlbumDatabaseServer.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AlbumDatabaseServer.Data.ListAlbum", b =>
-                {
-                    b.HasOne("AlbumDatabaseServer.Data.Album", "Album")
-                        .WithMany()
-                        .HasForeignKey("AlbumId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AlbumDatabaseServer.Data.AlbumLists", "List")
-                        .WithMany("ListAlbums")
-                        .HasForeignKey("ListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Album");
-
-                    b.Navigation("List");
-                });
-
             modelBuilder.Entity("AlbumDatabaseServer.Data.ListenedAlbums", b =>
                 {
                     b.HasOne("AlbumDatabaseServer.Data.Album", "Album")
@@ -805,11 +732,6 @@ namespace AlbumDatabaseServer.Migrations
                     b.Navigation("AlbumGenres");
 
                     b.Navigation("Songs");
-                });
-
-            modelBuilder.Entity("AlbumDatabaseServer.Data.AlbumLists", b =>
-                {
-                    b.Navigation("ListAlbums");
                 });
 
             modelBuilder.Entity("AlbumDatabaseServer.Data.Genre", b =>

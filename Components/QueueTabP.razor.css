@@ -21,6 +21,11 @@
 .album-card {
     display: flex;
     margin: 13px;
+    transition: transform 0.2s;
+}
+.album-card:hover {
+    cursor: pointer;
+    transform: translateY(-4px);
 }
 .pagination-controls {
     margin-top: 20px;

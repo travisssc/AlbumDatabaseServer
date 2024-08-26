@@ -77,7 +77,7 @@
                 queuedText = $"You have {allQueuedAlbums.Count()} albums in your queue";
                 foreach (var album in allQueuedAlbums)
                 {
-                    var rating = await GetAlbumRating(album.AlbumId);
+                    var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
                     albumRatings[album.AlbumId] = rating;
                 }
                 queuedAlbums = new List<Album>(allQueuedAlbums);
@@ -95,10 +95,6 @@
     {
         totalPages = newTotalPages;
         SetPage(1);
-    }
-    private async Task<int> GetAlbumRating(int albumId)
-    {
-        return await UserService.GetRatingIntAsync(albumId, userName);
     }
     private List<Album> GetPaginatedAlbums()
     {

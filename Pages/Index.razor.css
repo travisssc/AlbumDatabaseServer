@@ -28,3 +28,8 @@
         width: 90%;
     }
 }
+.username-text {
+    color: #3BADE1;
+    text-decoration: underline;
+    text-underline-offset: 6px;
+}

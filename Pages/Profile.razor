@@ -1,4 +1,4 @@
-﻿@page "/profile"
+﻿@page "/profile/{tabName}"
 @using AlbumDatabaseServer.Data
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -28,51 +28,51 @@
 		}
 	</div>
 	<div class="profile-tray">
-		<button class="profile profile-tab @(tabIndex == 0 ? "active" : "")"
-				@onclick="() => tabIndex = 0">
+		<button class="profile profile-tab @(tabName == "home" ? "active" : "")"
+				@onclick="@(e => HandleNavigation("home"))">
 			<h3>Profile</h3>
 		</button>
-		<button class="albums profile-tab @(tabIndex == 1 ? "active" : "")"
-				@onclick="() => tabIndex = 1">
+		<button class="albums profile-tab @(tabName == "albums" ? "active" : "")"
+				@onclick="@(e => HandleNavigation("albums"))">
 			<h3>Albums</h3>
 		</button>
-		<button class="queue profile-tab @(tabIndex == 2 ? "active" : "")"
-				@onclick="() => tabIndex = 2">
+		<button class="queue profile-tab @(tabName == "queue" ? "active" : "")"
+				@onclick="@(e => HandleNavigation("queue"))">
 			<h3>Queue</h3>
 		</button>
-		<button class="reviews profile-tab @(tabIndex == 3 ? "active" : "")"
-				@onclick="() => tabIndex = 3">
+		<button class="reviews profile-tab @(tabName == "reviews" ? "active" : "")"
+				@onclick="@(e => HandleNavigation("reviews"))">
 			<h3>Reviews</h3>
 		</button>
-		<button class="lists profile-tab @(tabIndex == 4 ? "active" : "")"
-				@onclick="() => tabIndex = 4">
+		<button class="lists profile-tab @(tabName == "lists" ? "active" : "")"
+				@onclick="@(e => HandleNavigation("lists"))">
 			<h3>Lists</h3>
 		</button>
-		<button class="favorites profile-tab @(tabIndex == 5 ? "active" : "")"
-				@onclick="() => tabIndex = 5">
+		<button class="favorites profile-tab @(tabName == "favorites" ? "active" : "")"
+				@onclick="@(e => HandleNavigation("favorites"))">
 			<h3>Favorites</h3>
 		</button>
 
 	</div>
 	<div class="tab-content">
-		@switch (tabIndex)
+		@switch (tabName)
 		{
-			case 0:
+			case "home":
 				<ProfileTabP />
 				break;
-			case 1:
+			case "albums":
 				<AlbumsTabP />
 				break;
-			case 2:
+			case "queue":
 				<QueueTabP />
 				break;
-			case 3:
+			case "reviews":
 				<ReviewsTabP />
 				break;
-			case 4:
+			case "lists":
 				<ListsTabP />
 				break;
-			case 5:
+			case "favorites":
 				<FavoritesTabP />
 				break;
 		
@@ -81,8 +81,7 @@
 </div>
 
 @code {
-	[Parameter]
-	public string tabName { get; set; }
+	[Parameter] public string tabName { get; set; }
 	private bool isUserLoggedIn;
 	private string username;
 	private int tabIndex = 0;
@@ -100,7 +99,8 @@
 		}
 		Console.WriteLine("User logged in");
 	}
-	private void HandleNavigation()
+	private void HandleNavigation(string newTabName)
 	{
+		NavigationManager.NavigateTo($"/profile/{newTabName}");
 	}
 }

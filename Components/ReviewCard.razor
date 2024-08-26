@@ -1,0 +1,72 @@
+﻿@using AlbumDatabaseServer.Data
+@inject UserService UserService
+@inject AlbumService AlbumService
+@inject GenreService GenreService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="review-container @(width == "profile" ? "profile" : "")">
+	<div class="album-cover">
+		<AlbumComponent album="@album" displayInfo="false" />
+	</div>
+	<div class="review-content">
+		<div class="album-info">
+			<div class="album-name-year">
+				<h2 class="album-name">@album.Name</h2>
+				<h3 class="album-year">@album.ReleaseDate.ToString("yyyy")</h3>
+			</div>
+			<h3 class="album-artist">@album.Artist.ArtistName</h3>
+			<div class="user-info-container">
+				<div class="star-container">
+					@if (albumRating != null)
+					{
+						@for (int i = 0; i < albumRating; i++)
+						{
+							<span class="material-symbols-outlined star">
+								star
+							</span>
+						}
+					}
+				</div>
+				@if (isFavorited)
+				{
+					<span class="material-symbols-outlined favorite">
+						favorite
+					</span>
+				}
+				<h4 class="listened-text">Listened @dateListened.ToString("dd MMMM yyyy")</h4>
+			</div>
+			<div class="review-text">
+				<h3>@reviewText</h3>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+	[Parameter] public Album album { get; set; }
+	[Parameter] public string width { get; set; }
+	private int albumRating;
+	private bool isFavorited;
+	private DateTime dateListened;
+	private string reviewText;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		if (user.Identity.IsAuthenticated)
+		{
+			var userName = user.Identity.Name;
+			if (album != null)
+			{
+				albumRating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
+				isFavorited = await UserService.IsAlbumFavoritedAsync(album.AlbumId, userName);
+				dateListened = await UserService.GetDateListenedAsync(userName, album.AlbumId);
+				var review = await UserService.GetReviewAsync(album.AlbumId, userName);
+				reviewText = review.ReviewText;
+			}
+		}
+	}
+
+}

@@ -1,5 +1,46 @@
-﻿<h3>ListsTabP</h3>
+﻿@using AlbumDatabaseServer.Data
+@inject UserService UserService
+@inject AlbumService AlbumService
+@inject GenreService GenreService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
+<body>
+	@if (!lists.Any())
+	{
+		<div class="no-lists-dialogue">
+			<h4>You haven't created any lists yet!</h4>
+			<h4 class="button-create-list" @onclick="CreateList">Ready to start?</h4>
+		</div>	
+	}
+</body>
 @code {
+	private List<AlbumLists> lists = new();
+	private string userName;
+	private Dictionary<int, DateTime> datesListsCreated = new();
+	private Dictionary<int, DateTime> datesListsUpdated = new();
+	private int pageIndex = 1;
+	private int totalPages;
+	private const int pageSize = 12;
 
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		if (user.Identity.IsAuthenticated)
+		{
+			userName = user.Identity.Name;
+			lists = await UserService.GetListsAsync(userName);
+			foreach (var list in lists)
+			{
+				datesListsCreated[list.ListId] = await UserService.GetDateListCreatedAsync(userName, list.ListId);
+				datesListsUpdated[list.ListId] = await UserService.GetDateListUpdatedAsync(userName, list.ListId);
+			}
+			totalPages = (int)Math.Ceiling(lists.Count / (double)pageSize);
+		}
+	}
+	protected async Task CreateList()
+	{
+		NavigationManager.NavigateTo("/list/new");
+	}
 }
