@@ -191,7 +191,7 @@ else
             hoverListen = isListened ? "Listened" : "Listen";
             if (isQueued && isListened)
             {
-                ToggleQueue();
+                await ToggleQueue();
             }
         }
     }
@@ -274,11 +274,11 @@ else
             isRated = true;
             if (!isListened)
             {
-                ToggleListen();
+                await ToggleListen();
             }
             if (isQueued)
             {
-                ToggleQueue();
+                await ToggleQueue();
             }
         }
         StateHasChanged();
@@ -291,11 +291,11 @@ else
             Snackbar.Add("Review saved successfully!", Severity.Success);
             if (isQueued)
             {
-                ToggleQueue();
+                await ToggleQueue();
             }
             if (!isListened)
             {
-                ToggleListen();
+                await ToggleListen();
             }
         }
         else if (string.IsNullOrEmpty(_reviewText) && !string.IsNullOrEmpty(userName))

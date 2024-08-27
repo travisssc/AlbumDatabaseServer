@@ -92,7 +92,7 @@ else
 			isListened = !isListened;
 			if (isQueued && isListened)
 			{
-				ToggleQueue();
+				await ToggleQueue();
 			}
 			StateHasChanged();
 		}

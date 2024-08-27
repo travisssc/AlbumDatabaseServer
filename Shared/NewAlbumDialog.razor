@@ -135,7 +135,7 @@
 
 	async Task SubmitAlbum()
 	{
-		form.Validate();
+		await form.Validate();
 		bool formIsValid = form.IsValid;
 		if (formIsValid && uploadedCover != null && releaseDate.HasValue)
 		{

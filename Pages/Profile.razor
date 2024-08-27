@@ -12,15 +12,21 @@
 	<div class="profile-header">
 		@if (isUserLoggedIn)
 		{
-			<img src="@profilePictureUrl" class="profile-image" />
+			<div class="profile-picture" @onclick="EditProfilePicture">
+				<img src="@profilePictureUrl" class="profile-image" />
+				<span class="material-symbols-outlined edit">
+					edit
+				</span>
+				<h5 class="edit edit-text">Choose photo</h5>
+			</div>
 			<div class="profile-item">
 				<h2>@username</h2>
 			</div>
-			<div class="profile-item">
+			@* <div class="profile-item">
 				<button class="edit-button">
 					Edit profile
 				</button>
-			</div>
+			</div> *@
 			<div class="record-count">
 				<h2 class="count-number">@listenCount</h2>
 				<subtitle1 class="count-text">Albums</subtitle1>
@@ -84,7 +90,6 @@
 	[Parameter] public string tabName { get; set; }
 	private bool isUserLoggedIn;
 	private string username;
-	private int tabIndex = 0;
 	private string profilePictureUrl = "profile-pictures/default-profile.png";
 	private int listenCount = 0;
 	protected override async Task OnInitializedAsync()
@@ -102,5 +107,9 @@
 	private void HandleNavigation(string newTabName)
 	{
 		NavigationManager.NavigateTo($"/profile/{newTabName}");
+	}
+	private async Task EditProfilePicture()
+	{
+		return;
 	}
 }

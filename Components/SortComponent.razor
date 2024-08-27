@@ -186,7 +186,7 @@
     private async Task RatingSort()
     {
         albums = new List<Album>(allAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
+        await GeneralSort(sortId); // Apply general sort (if any)
         if (isDecadeSortActive)
         {
             albums = albums
@@ -244,7 +244,7 @@
     private async Task DecadeSort(int decade)
     {
         albums = new List<Album>(allAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
+        await GeneralSort(sortId); // Apply general sort (if any)
         if (isRatingSortActive)
         {
             var ratedAlbums = albums
@@ -284,13 +284,13 @@
         albums = new List<Album>(allAlbums);
         if (isRatingSortActive) await RatingSort();
         if (isDecadeSortActive) await DecadeSort(selectedDecade);
-        GeneralSort(sortId);
+        await GeneralSort(sortId);
     }
     private async Task GenreSort(Genre genre)
     {
         isGenreSortActive = true;
         albums = new List<Album>(allAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
+        await GeneralSort(sortId); // Apply general sort (if any)
         if (isRatingSortActive)
         {
             var ratedAlbums = albums
