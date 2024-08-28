@@ -392,14 +392,25 @@ namespace AlbumDatabaseServer.Data
             if (string.IsNullOrEmpty(extension) || !Array.Exists(allowedExtensions, ext => ext == extension))
                 throw new ArgumentException("Invalid file type. Only .jpg, .jpeg, and .png are allowed.");
             var filePath = await CreateFilePath(file, wwwrootPath, "profile-pictures");
-            await context.AccountPictures.AddAsync(new AccountPicture
+            var existingPic = await context.AccountPictures
+				.FirstOrDefaultAsync(p => p.UserName == userName);
+            if (existingPic != null)
 			{
-				UserName = userName,
-				PicturePath = filePath
-			});
-            await context.SaveChangesAsync();
-        }
-        public async Task DeleteAccountPicAsync(string userName)
+				existingPic.PicturePath = filePath;
+				context.AccountPictures.Update(existingPic);
+				await context.SaveChangesAsync();
+			}
+			else
+            {
+				await context.AccountPictures.AddAsync(new AccountPicture
+				{
+					UserName = userName,
+					PicturePath = filePath
+				});
+			}
+			await context.SaveChangesAsync();
+		}
+		public async Task DeleteAccountPicAsync(string userName)
         {
 			using var context = _dbContextFactory.CreateDbContext();
 			var profilePicture = await context.AccountPictures

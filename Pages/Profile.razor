@@ -13,14 +13,15 @@
 	<div class="profile-header">
 		@if (isUserLoggedIn)
 		{
-			<img src="@profilePictureUrl" class="profile-image" />
-			<div class="profile-item">
-				<h2>@username</h2>
+			<div class="profile-picture" @onclick="EditProfilePicture">
+				<img src="@profilePictureUrl" class="profile-image" />
+				<span class="material-symbols-outlined edit">
+					edit
+				</span>
+				<label class="edit edit-text">Choose photo</label>
 			</div>
 			<div class="profile-item">
-				<button class="edit-button">
-					Edit profile
-				</button>
+				<h1>@username</h1>
 			</div>
 			<div class="record-count">
 				<h2 class="count-number">@listenCount</h2>

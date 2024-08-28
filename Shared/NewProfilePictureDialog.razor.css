@@ -1,0 +1,91 @@
+﻿.button-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    cursor: pointer;
+    z-index: 1;
+    padding: 8px;
+    border-radius: 100vh;
+}
+.dialog-container {
+    background: #212121;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+    padding-bottom: 16px;
+}
+.button-close:hover {
+    background: #3E3E3E;
+}
+.close {
+    color: #b3b3b3;
+}
+.profile-picture {
+    display: flex;
+    position: relative;
+    padding: 0;
+    height: 200px;
+    width: 200px;
+    border-radius: 100vh;
+    background: black;
+    margin: 24px;
+}
+.edit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 36px;
+    opacity: 0;
+    transition: opacity ease 0.1s;
+    cursor: default;
+}
+
+.text {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 18px;
+    text-align: center;
+    opacity: 0;
+    width: 200px;
+}
+    .text.upload {
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+    }
+    .text.remove {
+        top: 70%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .text:hover {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+.profile-picture:hover .text {
+    opacity: 1;
+    z-index: 2;
+}
+.profile-picture:hover .profile-image {
+    opacity: 0.5;
+}
+
+.profile-picture:hover .edit {
+    opacity: 1;
+    z-index: 2;
+}
+
+.profile-image {
+    height: 200px;
+    transition: opacity ease 0.1s;
+    border-radius: 100vh;
+}
+.button-save {
+    padding: 8px 16px 8px 16px;
+    background: #3bade1;
+    border-radius: 100vh;
+    width: 50%;
+}

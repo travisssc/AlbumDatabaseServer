@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <MudDialogProvider/>
@@ -142,6 +143,14 @@
     bool _drawerOpen = true;
     private string _searchString = "";
     private string logoUrl = "logos/waveformd-logo.png";
+    private bool isUserLoggedIn = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        isUserLoggedIn = user.Identity.IsAuthenticated;
+    }
     private void HandleSearchKeyUp(KeyboardEventArgs e)
     {
         if (e.Key == "Enter" && !string.IsNullOrEmpty(_searchString))

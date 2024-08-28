@@ -54,10 +54,7 @@
     cursor: pointer;
 }
 .profile-image {
-    transform-origin: center;
-    transform: scale(0.5);
-    overflow: hidden;
-    margin: -48px;
+    height: 100px;
     transition: opacity ease 0.1s;
     border-radius: 100vh;
 }

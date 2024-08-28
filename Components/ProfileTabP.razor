@@ -178,7 +178,8 @@
 			{ TotalMinutes: < 1 } => "Just now",
 			{ TotalMinutes: < 60 } => $"{(int)timeSpan.TotalMinutes}m",
 			{ TotalHours: < 24 } => $"{(int)timeSpan.TotalHours}h",
-			{ TotalDays: < 30 } => $"{(int)timeSpan.TotalDays / 7}d",
+			{ TotalDays: < 7 } => $"{(int)timeSpan.TotalDays}d",
+			{ TotalDays: < 30 } => $"{(int)timeSpan.TotalDays / 7}w",
 			{ TotalDays: < 365 } => $"{(int)timeSpan.TotalDays / 30}m",
 			_ => $"{(int)timeSpan.TotalDays / 365}yr"
 		};
