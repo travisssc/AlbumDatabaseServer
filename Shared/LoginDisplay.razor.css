@@ -8,10 +8,17 @@
     padding-right: 15px;
     display: inline-block;
 }
-.profile-button .profile-icon {
-    transform: scale(1.4);
-    padding-right: 15px;
-    padding-top: 6px;
+.profile-image {
+    transform-origin: center;
+    height: 32px;
+    margin-right: 16px;
+    border-radius: 100vh;
+}
+.profile-button {
+    transition: color 0.1s ease;
+}
+.profile-button:hover {
+    color: white;
 }
 .dropdown-menu {
     display: none;

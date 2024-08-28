@@ -22,6 +22,32 @@ namespace AlbumDatabaseServer.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AlbumDatabaseServer.Data.AccountPicture", b =>
+                {
+                    b.Property<int>("PictureId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PictureId"));
+
+                    b.Property<string>("PicturePath")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("PictureId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AccountPictures");
+                });
+
             modelBuilder.Entity("AlbumDatabaseServer.Data.AccountQueue", b =>
                 {
                     b.Property<int>("AccountQueueId")
@@ -362,29 +388,6 @@ namespace AlbumDatabaseServer.Migrations
                     b.ToTable("Songs");
                 });
 
-            modelBuilder.Entity("AlbumDatabaseServer.Data.UserProfilePicture", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("PicturePath")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserProfilePictures");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -585,6 +588,15 @@ namespace AlbumDatabaseServer.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("AlbumDatabaseServer.Data.AccountPicture", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("AlbumDatabaseServer.Data.AccountQueue", b =>
                 {
                     b.HasOne("AlbumDatabaseServer.Data.Album", "Album")
@@ -736,17 +748,6 @@ namespace AlbumDatabaseServer.Migrations
                     b.Navigation("Album");
 
                     b.Navigation("Artist");
-                });
-
-            modelBuilder.Entity("AlbumDatabaseServer.Data.UserProfilePicture", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

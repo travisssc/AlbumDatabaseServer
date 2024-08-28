@@ -1,4 +1,8 @@
-﻿@inject NavigationManager NavigationManager
+﻿@using AlbumDatabaseServer.Data
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject UserService UserService
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <div style="color-scheme:dark">
@@ -6,11 +10,7 @@
         <Authorized>
                 <div class="profile-container">
                     <button class="profile-button" @onclick="NavToProfile">
-                        <div class="profile-icon">
-                            <span class="material-symbols-outlined">
-                                account_circle
-                            </span>
-                        </div>
+                    <img src="@profilePictureUrl" class="profile-image" />
                         @context.User.Identity?.Name
                     </button>
                     <div class="dropdown-menu">
@@ -36,6 +36,25 @@
     </AuthorizeView>
 </div>
 @code {
+    private bool isUserLoggedIn;
+    private string username;
+    private string profilePictureUrl = "profile-pictures/default-profile.png";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        isUserLoggedIn = user.Identity.IsAuthenticated;
+        if (isUserLoggedIn)
+        {
+            username = user.Identity.Name;
+            var profilePicture = await UserService.GetAccountPicAsync(username);
+            if (profilePicture != string.Empty)
+            {
+                profilePictureUrl = profilePicture;
+            }
+        }
+    }
 	private void NavToProfile()
 	{
 		NavigationManager.NavigateTo("/profile/home");

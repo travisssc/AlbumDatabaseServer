@@ -80,7 +80,18 @@ main {
 body {
     font-family: 'CircularStd-Black', sans-serif;
 }
-
+.tab {
+    margin-inline: 15px;
+    color: #b3b3b3;
+    transition: color 0.1s ease;
+}
+.tab:hover {
+    color: white;
+}
+.tab.queue {
+    display: flex;
+    align-items: center;
+}
 .search-bar {
     --size: 40px;
     display: flex;
@@ -91,6 +102,12 @@ body {
     position: relative;
     transition: width 300ms cubic-bezier(.18,.89,.32,1.1);
     overflow: hidden;
+}
+.search {
+    transition: color 0.1s ease;
+}
+.search:hover {
+    color: white;
 }
 .search-bar-input {
     flex-grow: 1;

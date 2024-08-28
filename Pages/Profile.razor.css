@@ -16,12 +16,50 @@
     padding: 10px;
     border-radius: 5px;
 }
-
+.profile-picture {
+    display: flex;
+    position: relative;
+    padding: 0;
+    height: 100px;
+    width: 100px;
+    border-radius: 100vh;
+    background: black;
+    margin: 24px;
+}
+.edit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    font-size: 36px;
+    opacity: 0;
+    transition: opacity ease 0.1s;
+}
+    .edit.edit-text {
+        font-size: 12px;
+        margin-top: 32px;
+        width: 100px;
+        cursor: default;
+        text-align: center;
+    }
+.profile-picture:hover .profile-image {
+    opacity: 0.5;
+}
+.profile-picture:hover .edit {
+    opacity: 1;
+    z-index: 2;
+}
+.profile-picture:hover {
+    cursor: pointer;
+}
 .profile-image {
     transform-origin: center;
     transform: scale(0.5);
     overflow: hidden;
-    margin: -24px;
+    margin: -48px;
+    transition: opacity ease 0.1s;
+    border-radius: 100vh;
 }
 .profile-tray {
     display: flex;

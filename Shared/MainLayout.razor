@@ -9,8 +9,6 @@
 
 <MudLayout>
     <MudAppBar>
-@*         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
- *@        
         <a href="/" style="color: #b3b3b3;">
             <div class="logo-container">
                 <img src="@logoUrl" class="logo-image" />
@@ -19,22 +17,21 @@
         </a>
         <MudSpacer></MudSpacer>
         <LoginDisplay />
-        @* <a href="https://docs.microsoft.com/aspnet/" target="_blank" style="margin-left: 20px;">About</a> *@
-        <a href="/Queue" class="item">
-            <div style="display: flex; align-items: center;">
+        <a href="@(isUserLoggedIn ? "/profile/queue" : "/queue")" class="tab">
+            <div class="tab queue">
                 <span class="material-symbols-outlined">
                     queue_music
                 </span>
                 <span style="padding-left: 5px;">Your Queue</span>
             </div>
         </a>
-        <a href="/Albums" class="item">
+        <a href="/Albums" class="tab">
             Albums
         </a>
-        <a href="/Lists" class="item">
+        <a href="/Lists" class="tab">
             Lists
         </a>
-        <a href="/Members" class="item">
+        <a href="/Members" class="tab">
             Members
         </a>
         @* <button class="search-button" @onclick="() => searchOpen = !searchOpen">
@@ -59,12 +56,12 @@
                    placeholder="Looking for an album?" aria-label="search"
                    @bind="_searchString" @onkeyup="HandleSearchKeyUp" />
             <button class="search-bar-submit" aria-label="submit search">
-				<span class="material-symbols-outlined">
+				<span class="material-symbols-outlined search">
 					search
 				</span>
             </button>
         </div>
-        <a href="/fetchdata" class="item">Admin view</a>
+        <a href="/fetchdata" class="tab">Admin view</a>
     </MudAppBar>
 @*     <MudDrawer @bind-Open="@_drawerOpen">
         <NavMenu/>
@@ -76,10 +73,6 @@
 <style>
     .transparent-container {
         background-color: transparent;
-    }
-    .item {
-        margin-inline: 15px;
-        color: #b3b3b3;
     }
 
     .mud-chart {
@@ -136,6 +129,10 @@
     }
     .form-control.description {
         height: 128px;
+    }
+    .mud-dialog {
+        border-radius: 10px;
+        background: #212121;
     }
 </style>
 

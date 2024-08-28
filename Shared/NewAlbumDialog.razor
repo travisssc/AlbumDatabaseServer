@@ -4,6 +4,7 @@
 @inject IWebHostEnvironment _env
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject AlbumService AlbumService
+@inject UserService UserService
 @inherits MainLayout
 
 <MudDialog Style="background-color: #212121">
@@ -122,15 +123,7 @@
 		//var uploadsPath = _configuration["ImageUploadPath"];
 		var wwwrootPath = _env.WebRootPath;
 		var uploadsFolder = "uploads";
-		var uploadsAbsPath = Path.Combine(wwwrootPath, uploadsFolder);
-		if (!Directory.Exists(uploadsAbsPath))
-			Directory.CreateDirectory(uploadsAbsPath);
-		var fileName = Path.GetRandomFileName() + Path.GetExtension(coverImage.Name);
-		var filePath = Path.Combine(uploadsAbsPath, fileName);
-
-		await using var fs = new FileStream(filePath, FileMode.Create); // upload the file to the ABSOLUTE path
-		await coverImage.OpenReadStream().CopyToAsync(fs);
-		return Path.Combine(uploadsFolder, fileName); // return cover's RELATIVE path for the database entry
+		return await UserService.CreateFilePath(coverImage, wwwrootPath, uploadsFolder);
 	}
 
 	async Task SubmitAlbum()
