@@ -2,7 +2,7 @@
 @inject UserService UserService
 @inject AlbumService AlbumService
 @inject AuthenticationStateProvider AuthenticationStateProvider
-
+@inject NavigationManager NavigationManager
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <div class="tab-container">
@@ -60,7 +60,7 @@
 				<h3 class="info-text">@queueCount</h3>
 			</div>
 			<hr class="divider" />
-			<div class="display-container">
+			<div class="display-container" @onclick="@(e => HandleNavigation("queue"))">
 				<ListDisplay Username="@userName" />
 			</div>
 			<div class="text-container">
@@ -178,10 +178,14 @@
 			{ TotalMinutes: < 1 } => "Just now",
 			{ TotalMinutes: < 60 } => $"{(int)timeSpan.TotalMinutes}m",
 			{ TotalHours: < 24 } => $"{(int)timeSpan.TotalHours}h",
-			{ TotalDays: < 30 } => $"{(int)timeSpan.TotalDays / 7}d",
+			{ TotalDays: < 7 } => $"{(int)timeSpan.TotalDays}d",
+			{ TotalDays: < 30 } => $"{(int)timeSpan.TotalDays / 7}w",
 			{ TotalDays: < 365 } => $"{(int)timeSpan.TotalDays / 30}m",
 			_ => $"{(int)timeSpan.TotalDays / 365}yr"
 		};
 	}
-
+	private void HandleNavigation(string newTabName)
+	{
+		NavigationManager.NavigateTo($"/profile/{newTabName}");
+	}
 }

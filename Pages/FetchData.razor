@@ -192,7 +192,7 @@ else
 		var dialog = DialogService.Show<NewAlbumDialog>("Submit new album", parameters, options);
 		dialog.Result.ContinueWith(async task =>
 		{
-			if (task.Result.Cancelled) return;
+			if (task.Result.Canceled) return;
 			var success = (bool)task.Result.Data;
 			if (success)
 			{

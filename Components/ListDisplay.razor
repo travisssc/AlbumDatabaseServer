@@ -4,7 +4,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<button class="queue-button" @onclick="NavToQueue">
+<button class="queue-button">
 	<div class="queue-container">
 		@if (queuedAlbums == null)
 		{
@@ -36,9 +36,5 @@
 				.Take(5)
 				.ToList();
 		}
-	}
-	private void NavToQueue()
-	{
-		NavigationManager.NavigateTo("/Queue");
 	}
 }

@@ -1,0 +1,100 @@
+﻿@using AlbumDatabaseServer.Data
+@using Microsoft.EntityFrameworkCore
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject UserService UserService
+@inject IJSRuntime JSRuntime
+@inject IWebHostEnvironment _env
+
+<button class="button-close" @onclick="CloseDialog">
+	<span class="material-symbols-outlined close">
+		close
+	</span>
+</button>
+<MudDialog>
+	<DialogContent>
+		<div class="dialog-container">
+			<div class="profile-picture">
+				<img src="@profilePictureUrl" class="profile-image" />
+				<InputFile @bind-File="uploadedImage" style="display:none" id="imgupload" type="file" accept=".jpeg,.jpg,.png" OnChange="OnInputFileChange" />
+				<label class="text upload" for="imgupload">Choose photo</label>
+				<span class="material-symbols-outlined edit">
+					edit
+				</span>
+				<label class="text remove" @onclick="RemovePhoto">Remove photo</label>
+			</div>
+			<button class="button-save" @onclick="UpdateProfilePicture">Save</button>
+		</div>
+	</DialogContent>
+</MudDialog>
+
+@code {
+	[CascadingParameter]
+	MudDialogInstance MudDialog { get; set; }
+	private string username;
+	private string profilePictureUrl = "profile-pictures/default-profile.png";
+	private IBrowserFile uploadedImage;
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		if (user.Identity.IsAuthenticated)
+		{
+			username = user.Identity.Name;
+			var profilePicture = await UserService.GetAccountPicAsync(username);
+			if (profilePicture != string.Empty)
+			{
+				profilePictureUrl = profilePicture;
+			}
+		}
+	}
+	private async Task OnInputFileChange(InputFileChangeEventArgs e)
+	{
+
+		var file = e.File;
+		if (file != null && file.ContentType.StartsWith("image/"))
+		{
+			uploadedImage = file;
+			using (var memoryStream = new MemoryStream())
+			{
+				await file.OpenReadStream().CopyToAsync(memoryStream);
+				var buffer = memoryStream.ToArray();
+
+				var base64String = Convert.ToBase64String(buffer);
+				profilePictureUrl = $"data:{file.ContentType};base64,{base64String}";
+			}
+		}
+	}
+	private void RemovePhoto()
+	{
+		profilePictureUrl = "profile-pictures/default-profile.png";
+	}
+	private async Task UpdateProfilePicture()
+	{
+		using var context = DbFactory.CreateDbContext();
+		if (uploadedImage != null)
+		{
+			var wwwrootPath = _env.WebRootPath;
+			await UserService.SubmitAccountPicAsync(username, uploadedImage, wwwrootPath);
+			await context.SaveChangesAsync();
+			await Task.Delay(1000);
+			MudDialog.Close(DialogResult.Ok(true));
+		}
+		else if (profilePictureUrl == "profile-pictures/default-profile.png")
+		{
+			var currentProfilePicture = await UserService.GetAccountPicAsync(username);
+			if (currentProfilePicture != string.Empty)
+            {
+                await UserService.DeleteAccountPicAsync(username);
+                await context.SaveChangesAsync();
+                await Task.Delay(1000);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+		}
+		else CloseDialog();
+	}
+	void CloseDialog()
+	{
+		MudDialog.Cancel();
+	}
+}

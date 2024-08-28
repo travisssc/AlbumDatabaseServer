@@ -23,7 +23,7 @@
     height: 100px;
     width: 100px;
     border-radius: 100vh;
-    background: #212121;
+    background: black;
     margin: 24px;
 }
 .edit {
@@ -44,7 +44,7 @@
         text-align: center;
     }
 .profile-picture:hover .profile-image {
-    opacity: 0;
+    opacity: 0.5;
 }
 .profile-picture:hover .edit {
     opacity: 1;
@@ -54,11 +54,9 @@
     cursor: pointer;
 }
 .profile-image {
-    transform-origin: center;
-    transform: scale(0.5);
-    overflow: hidden;
-    margin: -48px;
+    height: 100px;
     transition: opacity ease 0.1s;
+    border-radius: 100vh;
 }
 .profile-tray {
     display: flex;

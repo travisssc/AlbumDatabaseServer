@@ -1,9 +1,11 @@
 ﻿using AlbumDatabaseServer.Migrations;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.IdentityModel.Tokens;
+using System.Collections.Generic;
 
 namespace AlbumDatabaseServer.Data
 {
@@ -354,5 +356,70 @@ namespace AlbumDatabaseServer.Data
 				.FirstOrDefaultAsync(l => l.ListId == listId && l.UserId == userName);
 			return list?.DateUpdated ?? DateTime.MinValue;
 		}
-    }
+        
+        // PROFILE PIC FUNCTIONS
+        public async Task<string> GetAccountPicAsync(string userName)
+		{
+			using var context = _dbContextFactory.CreateDbContext();
+			var user = await context.AccountPictures
+                .FirstOrDefaultAsync(p => p.UserName == userName);
+			return user?.PicturePath ?? string.Empty;
+		}
+		public async Task<string> CreateFilePath(IBrowserFile image, string wwwrootPath, string folder)
+		{
+			var absPath = Path.Combine(wwwrootPath, folder);
+			if (!Directory.Exists(absPath))
+				Directory.CreateDirectory(absPath);
+			var fileName = Path.GetRandomFileName() + Path.GetExtension(image.Name);
+			var filePath = Path.Combine(absPath, fileName);
+
+			await using var fs = new FileStream(filePath, FileMode.Create); // upload the file to the ABSOLUTE path
+			await image.OpenReadStream().CopyToAsync(fs);
+			return Path.Combine(folder, fileName); // return cover's RELATIVE path for the database entry
+		}
+		public async Task SubmitAccountPicAsync(string userName, IBrowserFile file, string wwwrootPath)
+        {
+			using var context = _dbContextFactory.CreateDbContext();
+			if (file == null || file.Size == 0)
+            {
+                throw new ArgumentException("No file provided");
+            }
+            const long maxFileSize = 2 * 1024 * 1024; // 2MB
+            if (file.Size > maxFileSize)
+				throw new ArgumentException("Maximum file size is 2MB");
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+            if (string.IsNullOrEmpty(extension) || !Array.Exists(allowedExtensions, ext => ext == extension))
+                throw new ArgumentException("Invalid file type. Only .jpg, .jpeg, and .png are allowed.");
+            var filePath = await CreateFilePath(file, wwwrootPath, "profile-pictures");
+            var existingPic = await context.AccountPictures
+				.FirstOrDefaultAsync(p => p.UserName == userName);
+            if (existingPic != null)
+			{
+				existingPic.PicturePath = filePath;
+				context.AccountPictures.Update(existingPic);
+				await context.SaveChangesAsync();
+			}
+			else
+            {
+				await context.AccountPictures.AddAsync(new AccountPicture
+				{
+					UserName = userName,
+					PicturePath = filePath
+				});
+			}
+			await context.SaveChangesAsync();
+		}
+		public async Task DeleteAccountPicAsync(string userName)
+        {
+			using var context = _dbContextFactory.CreateDbContext();
+			var profilePicture = await context.AccountPictures
+                .FirstOrDefaultAsync(p => p.UserName == userName);
+            if (profilePicture != null)
+            {
+                context.AccountPictures.Remove(profilePicture);
+				await context.SaveChangesAsync();
+            }
+        }
+	}
 }

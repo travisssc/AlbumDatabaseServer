@@ -4,6 +4,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject UserService UserService
+@inject IDialogService DialogService
 @using AlbumDatabaseServer.Components
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -17,16 +18,11 @@
 				<span class="material-symbols-outlined edit">
 					edit
 				</span>
-				<h5 class="edit edit-text">Choose photo</h5>
+				<label class="edit edit-text">Choose photo</label>
 			</div>
 			<div class="profile-item">
-				<h2>@username</h2>
+				<h1>@username</h1>
 			</div>
-			@* <div class="profile-item">
-				<button class="edit-button">
-					Edit profile
-				</button>
-			</div> *@
 			<div class="record-count">
 				<h2 class="count-number">@listenCount</h2>
 				<subtitle1 class="count-text">Albums</subtitle1>
@@ -101,6 +97,11 @@
 		{
 			username = user.Identity.Name;
 			listenCount = await UserService.CountListenedAlbumsAsync(username);
+			var profilePicture = await UserService.GetAccountPicAsync(username);
+			if (profilePicture != string.Empty)
+            {
+                profilePictureUrl = profilePicture;
+            }
 		}
 		Console.WriteLine("User logged in");
 	}
@@ -110,6 +111,21 @@
 	}
 	private async Task EditProfilePicture()
 	{
-		return;
+		var options = new DialogOptions
+			{
+				CloseOnEscapeKey = true
+			};
+		var parameters = new DialogParameters();
+		var dialog = DialogService.Show<NewProfilePictureDialog>("Edit Profile Picture", parameters, options);
+		await dialog.Result.ContinueWith(async task =>
+		{
+			if (task.Result.Canceled) return;
+			var success = (bool)task.Result.Data;
+			if (success)
+			{
+				await OnInitializedAsync();
+				StateHasChanged();
+			}
+		});
 	}
 }
