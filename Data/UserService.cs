@@ -288,7 +288,7 @@ namespace AlbumDatabaseServer.Data
 			using var context = _dbContextFactory.CreateDbContext();
             var existingReview = await context.AlbumReviews
                 .FirstOrDefaultAsync(r => r.AlbumId == albumId && r.UserName == userName);
-            if (!string.IsNullOrEmpty(existingReview.ReviewText))
+            if (existingReview != null && !string.IsNullOrEmpty(existingReview.ReviewText))
             {
                 existingReview.ReviewText = reviewText;
                 existingReview.DateReviewed = DateTime.UtcNow;
@@ -386,8 +386,10 @@ namespace AlbumDatabaseServer.Data
             }
             const long maxFileSize = 2 * 1024 * 1024; // 2MB
             if (file.Size > maxFileSize)
+            {
 				throw new ArgumentException("Maximum file size is 2MB");
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+			}
+			var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
             var extension = Path.GetExtension(file.Name).ToLowerInvariant();
             if (string.IsNullOrEmpty(extension) || !Array.Exists(allowedExtensions, ext => ext == extension))
                 throw new ArgumentException("Invalid file type. Only .jpg, .jpeg, and .png are allowed.");
@@ -396,9 +398,13 @@ namespace AlbumDatabaseServer.Data
 				.FirstOrDefaultAsync(p => p.UserName == userName);
             if (existingPic != null)
 			{
+                var oldFilePath = Path.Combine(wwwrootPath, existingPic.PicturePath);
+                if (File.Exists(oldFilePath))
+				{
+					File.Delete(oldFilePath);
+				}
 				existingPic.PicturePath = filePath;
 				context.AccountPictures.Update(existingPic);
-				await context.SaveChangesAsync();
 			}
 			else
             {

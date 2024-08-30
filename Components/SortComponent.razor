@@ -8,13 +8,20 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <div class="sort-container">
     <div class="rating-sort">
-        <MudExpansionPanel Text="Rating" Style="width: 100%">
-            <h3 class="sort-label rating" @onclick="() => ResetRateSort()">Any</h3>
-            <MudRating @bind-SelectedValue="ratingSortValue" Size="Size.Small" Color="Color.Success" />
-        </MudExpansionPanel>
+        @if (listType != "queued")
+        {
+            <MudExpansionPanel Text="@ratingText" IsExpanded="@isRatingPanelExpanded"
+                    @onmouseenter="() => isRatingPanelExpanded = true"
+                    @onmouseleave="() => isRatingPanelExpanded = false">
+                <h3 class="sort-label rating" @onclick="() => ResetRateSort()">Any</h3>
+                <MudRating @bind-SelectedValue="ratingSortValue" Size="Size.Small" Color="Color.Success" />
+            </MudExpansionPanel>
+        }
     </div>
     <div class="decade-sort">
-        <MudExpansionPanel Text="@decadeText">
+        <MudExpansionPanel Text="@decadeText" IsExpanded="@isDecadePanelExpanded"
+                    @onmouseenter="() => isDecadePanelExpanded = true"
+                    @onmouseleave="() => isDecadePanelExpanded = false">
             <div class="decades-container">
                 <h3 class="sort-label" @onclick="() => DecadeSort(0)">All</h3>
                 @foreach (var decade in decades)
@@ -25,7 +32,9 @@
         </MudExpansionPanel>
     </div>
     <div class="genre-sort">
-        <MudExpansionPanel Text="@genreText">
+        <MudExpansionPanel Text="@genreText" IsExpanded="@isGenrePanelExpanded"
+                    @onmouseenter="() => isGenrePanelExpanded = true"
+                    @onmouseleave="() => isGenrePanelExpanded = false">
             <div class="genres-container">
                 <h3 class="sort-label" @onclick="() => ResetGenreSort()">Any</h3>
                 @foreach (var genre in genres)
@@ -36,7 +45,9 @@
         </MudExpansionPanel>
     </div>
     <div class="main-sort">
-        <MudExpansionPanel Text="@sortText">
+        <MudExpansionPanel Text="@sortText" IsExpanded="@isSortPanelExpanded"
+                    @onmouseenter="() => isSortPanelExpanded = true"
+                    @onmouseleave="() => isSortPanelExpanded = false">
             <div class="general-sort-container">
                 <div class="sort-type">
                     <h3 class="sub-type name @((sortId == 0) ? "active" : "")" @onclick="() => GeneralSort(0)">Album Name</h3>
@@ -99,11 +110,26 @@
     private string decadeText = "Decade";
     private string genreText = "Genre";
     private string sortText = "Sort by Listen Date"; // Default sort
+    private string ratingText
+    {
+        get
+        {
+            if (ratingSortValue == 0)
+            {
+                return "Rating";
+            }
+            return new string('★', ratingSortValue) + new string('☆', 5 - ratingSortValue);
+        }
+    }
     private int selectedDecade = 0;
     private bool isRatingSortActive = false;
     private bool isDecadeSortActive = false;
     private bool isGenreSortActive = false;
     private int sortId = 1;
+    private bool isRatingPanelExpanded = false;
+    private bool isDecadePanelExpanded = false;
+    private bool isGenrePanelExpanded = false;
+    private bool isSortPanelExpanded = false;
     private int _ratingSortValue = 0;
     private int ratingSortValue
     {
@@ -145,7 +171,8 @@
             {
                 foreach (var album in allAlbums)
                 {
-
+                    var rating = await GetAlbumRating(album.AlbumId);
+                    albumRatings[album.AlbumId] = rating;
                     var listenDate = await UserService.GetDateListenedAsync(userName, album.AlbumId);
                     albumListenDates[album.AlbumId] = listenDate;
                 }
@@ -186,7 +213,7 @@
     private async Task RatingSort()
     {
         albums = new List<Album>(allAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
+        await GeneralSort(sortId); // Apply general sort (if any)
         if (isDecadeSortActive)
         {
             albums = albums
@@ -244,7 +271,12 @@
     private async Task DecadeSort(int decade)
     {
         albums = new List<Album>(allAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
+        if (decade == 0)
+        {
+            isDecadeSortActive = false;
+            decadeText = "Decade";
+        }
+        await GeneralSort(sortId); // Apply general sort (if any)
         if (isRatingSortActive)
         {
             var ratedAlbums = albums
@@ -261,17 +293,11 @@
         }
         if (decade > 0)
         {
-            selectedDecade = decade;
             isDecadeSortActive = true;
             decadeText = $"{decade}'s";
             albums = albums
                 .Where(album => album.ReleaseDate.Year >= decade && album.ReleaseDate.Year < decade + 10)
                 .ToList();
-        }
-        else
-        {
-            isDecadeSortActive = false;
-            decadeText = "Decade";
         }
         totalPages = (int)Math.Ceiling(albums.Count() / 10.0);
         await UpdateTotalPages(totalPages);
@@ -284,13 +310,14 @@
         albums = new List<Album>(allAlbums);
         if (isRatingSortActive) await RatingSort();
         if (isDecadeSortActive) await DecadeSort(selectedDecade);
-        GeneralSort(sortId);
+        await GeneralSort(sortId);
     }
     private async Task GenreSort(Genre genre)
     {
+        genreText = genre.Name;
         isGenreSortActive = true;
         albums = new List<Album>(allAlbums);
-        GeneralSort(sortId); // Apply general sort (if any)
+        await GeneralSort(sortId); // Apply general sort (if any)
         if (isRatingSortActive)
         {
             var ratedAlbums = albums
@@ -305,7 +332,6 @@
                 .Where(album => album.ReleaseDate.Year >= selectedDecade && album.ReleaseDate.Year < selectedDecade + 10)
                 .ToList();
         }
-        genreText = genre.Name;
         albums = albums
             .Where(album => album.AlbumGenres.Any(ag => ag.GenreId == genre.GenreId))
             .ToList();
@@ -315,6 +341,26 @@
     }
     private async Task GeneralSort(int id)
     {
+        if (isDecadeSortActive)
+        {
+            albums = albums
+                .Where(album => album.ReleaseDate.Year >= selectedDecade && album.ReleaseDate.Year < selectedDecade + 10)
+                .ToList();
+        }
+        if (isGenreSortActive)
+        {
+            albums = albums
+                .Where(album => album.AlbumGenres.Any(ag => ag.GenreId == genres.Find(g => g.Name == genreText).GenreId))
+                .ToList();
+        }
+        if (isRatingSortActive)
+        {
+            var ratedAlbums = albums
+                .Where(album => albumRatings.TryGetValue(album.AlbumId, out int rating) && rating == ratingSortValue)
+                .ToList();
+
+            albums = ratedAlbums;
+        }
         sortId = id;
         switch (id)
         {

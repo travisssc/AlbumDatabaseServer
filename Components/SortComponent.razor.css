@@ -19,10 +19,11 @@
     color: #b3b3b3;
 }
 
-.sort-label:hover {
-    cursor: pointer;
-    color: white;
-}
+    .sort-label:hover {
+        cursor: pointer;
+        color: white;
+        background: #535353;
+    }
 .star-container {
     display: flex;
     align-items: center;
@@ -66,7 +67,9 @@
     padding: 4px 0px 4px 12px;
     color: #b3b3b3;
 }
-
+.sub-type.name:hover {
+    color: white;
+}
 .sub-type.name.active {
     color: #3BADE1;
 }

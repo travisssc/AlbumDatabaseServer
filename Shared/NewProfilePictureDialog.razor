@@ -24,6 +24,14 @@
 				<label class="text remove" @onclick="RemovePhoto">Remove photo</label>
 			</div>
 			<button class="button-save" @onclick="UpdateProfilePicture">Save</button>
+			@if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">@errorMessage</div>
+            }
+			@if (success)
+			{
+				<div class="success-message">@successMessage</div>
+			}
 		</div>
 	</DialogContent>
 </MudDialog>
@@ -34,6 +42,10 @@
 	private string username;
 	private string profilePictureUrl = "profile-pictures/default-profile.png";
 	private IBrowserFile uploadedImage;
+	private string errorMessage;
+	private string successMessage = "Profile picture updated successfully!";
+	private bool success = false;
+
 	protected override async Task OnInitializedAsync()
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -50,20 +62,36 @@
 	}
 	private async Task OnInputFileChange(InputFileChangeEventArgs e)
 	{
-
-		var file = e.File;
-		if (file != null && file.ContentType.StartsWith("image/"))
+		try
 		{
-			uploadedImage = file;
-			using (var memoryStream = new MemoryStream())
+			var file = e.File;
+			if (file != null && file.ContentType.StartsWith("image/"))
 			{
-				await file.OpenReadStream().CopyToAsync(memoryStream);
-				var buffer = memoryStream.ToArray();
+				uploadedImage = file;
+				var maxAllowedSize = 2 * 1024 * 1024; // 2MB
+				using (var memoryStream = new MemoryStream())
+				{
+					await file.OpenReadStream(maxAllowedSize).CopyToAsync(memoryStream);
+					var buffer = memoryStream.ToArray();
 
-				var base64String = Convert.ToBase64String(buffer);
-				profilePictureUrl = $"data:{file.ContentType};base64,{base64String}";
+					var base64String = Convert.ToBase64String(buffer);
+					profilePictureUrl = $"data:{file.ContentType};base64,{base64String}";
+					if (errorMessage != null)
+                    {
+                        errorMessage = null;
+                    }
+				}
 			}
 		}
+		catch (IOException ex)
+		{
+			errorMessage = "File is too large. Please choose a file smaller than 2MB.";
+		}
+		catch (Exception ex)
+		{
+			errorMessage = "An unexpected error occurred. Please try again.";
+		}
+
 	}
 	private void RemovePhoto()
 	{
@@ -75,6 +103,7 @@
 		if (uploadedImage != null)
 		{
 			var wwwrootPath = _env.WebRootPath;
+			success = true;
 			await UserService.SubmitAccountPicAsync(username, uploadedImage, wwwrootPath);
 			await context.SaveChangesAsync();
 			await Task.Delay(1000);
@@ -84,12 +113,13 @@
 		{
 			var currentProfilePicture = await UserService.GetAccountPicAsync(username);
 			if (currentProfilePicture != string.Empty)
-            {
-                await UserService.DeleteAccountPicAsync(username);
-                await context.SaveChangesAsync();
-                await Task.Delay(1000);
-                MudDialog.Close(DialogResult.Ok(true));
-            }
+			{
+				success = true;
+				await UserService.DeleteAccountPicAsync(username);
+				await context.SaveChangesAsync();
+				await Task.Delay(1000);
+				MudDialog.Close(DialogResult.Ok(true));
+			}
 		}
 		else CloseDialog();
 	}

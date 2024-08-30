@@ -51,21 +51,18 @@
 	private DateTime dateListened;
 	private string reviewText;
 
-	protected override async Task OnInitializedAsync()
+	protected override async Task OnParametersSetAsync()
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 		var user = authState.User;
-		if (user.Identity.IsAuthenticated)
+		if (user.Identity.IsAuthenticated && album != null)
 		{
 			var userName = user.Identity.Name;
-			if (album != null)
-			{
-				albumRating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
-				isFavorited = await UserService.IsAlbumFavoritedAsync(album.AlbumId, userName);
-				dateListened = await UserService.GetDateListenedAsync(userName, album.AlbumId);
-				var review = await UserService.GetReviewAsync(album.AlbumId, userName);
-				reviewText = review.ReviewText;
-			}
+			albumRating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
+			isFavorited = await UserService.IsAlbumFavoritedAsync(album.AlbumId, userName);
+			dateListened = await UserService.GetDateListenedAsync(userName, album.AlbumId);
+			var review = await UserService.GetReviewAsync(album.AlbumId, userName);
+			reviewText = review.ReviewText;
 		}
 	}
 

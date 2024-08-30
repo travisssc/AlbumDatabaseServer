@@ -89,3 +89,11 @@
     border-radius: 100vh;
     width: 50%;
 }
+.error-message {
+    color: #d43b3b;
+    margin-top: 8px;
+}
+.success-message {
+    color: #3bade1;
+    margin-top: 8px;
+}
