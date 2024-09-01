@@ -1,7 +1,6 @@
 ﻿.container {
     max-width: 1280px;
-    padding-left: 24px;
-    padding-right: 24px;
+    padding: 24px 64px 64px 64px;
     margin-left: auto;
     margin-right: auto;
     margin-top: 8px;
@@ -9,8 +8,14 @@
     box-sizing: border-box;
     border-radius: 8px;
 }
-.header-text {
+.list-form {
+    position: relative;
+}
+.header {
     padding-top: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 .divider {
     border: 1px solid #212121;
@@ -38,17 +43,25 @@
 .search-with-button {
     display: flex;
 }
-.button {
+.button-save {
+    position: absolute;
+    right: 0;
+    top: -64px;
+    height: fit-content;
+    margin-bottom: 4px;
     padding: 8px 16px 8px 16px;
     border-radius: 4px;
     background: #3BADE1;
     color: white;
+    transition: background 0.1s ease;
 }
-.button.save {
-    margin-left: 8px;
-}
+    .button-save:hover {
+        background: #5db6de;
+    }
 .list-group {
-    background: #535353;
+    background: rgba(33, 33, 33, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 1;
     padding: 8px;
     border-radius: 4px;
     width: 255.33px;
@@ -58,24 +71,58 @@
     margin-top: 66.2px;
 }
 .list-group-item {
+    display: flex;
     padding: 8px;
+    align-content: center;
+    align-items: center;
+}
+.item-image {
+    height: 32px;
+    width: 32px;
+    border-radius: 4px;
+    margin-right: 8px;
 }
 .list-group-item:hover {
     background: #3BADE1;
     cursor: pointer;
 }
-.album-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    padding-top: 16px;
+.list-container {
+    margin-top: 32px;
 }
-.list-item {
+.album-card {
     display: flex;
     flex-direction: column;
+    position: relative;
+    align-content: center;
+    align-items: center;
+}
+    .album-card:hover {
+        cursor: grab;
+    }
+.close {
+    position: absolute;
+    bottom: 0px;
+    left: 59px;
+    opacity: 0;
+    cursor: pointer;
+    border-radius: 100vh;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.05s ease-out, transform 0.1s ease;
+}
+.album-card:hover .close {
+    opacity: 1;
+    transform: translateY(-32px);
+}
+
+.album-cover {
+    display: flex;
 }
 .album-cover {
     height: 150px;
     width: 150px;
     border-radius: 4px;
+}
+.card-index {
+    margin-top: 8px;
 }

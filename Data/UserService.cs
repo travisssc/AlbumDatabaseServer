@@ -337,8 +337,9 @@ namespace AlbumDatabaseServer.Data
         public async Task<List<AlbumLists>> GetListsAsync(string userName)
 		{
 			using var context = _dbContextFactory.CreateDbContext();
-			return await context.Lists
-				.Where(l => l.UserId == userName)
+            return await context.Lists
+                .Where(l => l.UserId == userName)
+                .Include(l => l.ListAlbums)
 				.OrderByDescending(l => l.DateUpdated)
 				.ToListAsync();
 		}
@@ -356,6 +357,13 @@ namespace AlbumDatabaseServer.Data
 				.FirstOrDefaultAsync(l => l.ListId == listId && l.UserId == userName);
 			return list?.DateUpdated ?? DateTime.MinValue;
 		}
+        public async Task<AlbumLists> GetListAsync(int listId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            return await context.Lists
+                .Include(l => l.ListAlbums)
+                .FirstOrDefaultAsync(l => l.ListId == listId);
+        }
         
         // PROFILE PIC FUNCTIONS
         public async Task<string> GetAccountPicAsync(string userName)

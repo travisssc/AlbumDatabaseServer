@@ -31,7 +31,7 @@ namespace AlbumDatabaseServer.Data
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Song> Songs { get; set; }
         public DbSet<AlbumGenre> AlbumGenres {  get; set; } 
-
+        public DbSet<ListAlbum> ListAlbums { get; set; }
         // User function tables
         public DbSet<AccountQueue> AccountQueue { get; set; }
         public DbSet<AlbumRating> AlbumRatings { get; set; }

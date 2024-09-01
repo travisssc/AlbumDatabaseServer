@@ -1,7 +1,7 @@
-﻿.queue-button {
+﻿.display-button {
     box-sizing: border-box;
 }
-.queue-button::before {
+.display-button::before {
     border-radius: 5px;
     content: '';
     position: absolute;
@@ -13,35 +13,45 @@
     transition: border-color 0.3s ease;
     z-index: 6;
 }
-.queue-button:hover::before {
+.display-button:hover::before {
     border-color: white;
 }
-.queue-container {
+.display-container {
     display: flex;
     width: 340px;
 }
-.q-album-cover {
+.album-cover, .default-cover {
     width: 100px;
-    height: auto;
+    height: 100px;
     box-shadow: 2px 0px 10px rgba(0, 0, 0, 1);
     border-radius: 5px;
 }
-.q-album-cover:nth-child(1) {
+.default-cover {
+    background: #212121;
+    outline: 1px solid #535353;
+}
+.album-cover-container {
+    position: relative;
+    height: 100px;
+    padding: 0px;
+    margin: 0px;
+}
+.album-cover-container:nth-child(1) {
     z-index: 5;
 }
-.q-album-cover:nth-child(2) {
+.album-cover-container:nth-child(2) {
     z-index: 4;
     transform: translateX(-40px);
 }
-.q-album-cover:nth-child(3) {
+.album-cover-container:nth-child(3) {
     z-index: 3;
     transform: translateX(-80px);
 }
-.q-album-cover:nth-child(4) {
+.album-cover-container:nth-child(4) {
     z-index: 2;
     transform: translateX(-120px);
 }
-.q-album-cover:nth-child(5) {
+.album-cover-container:nth-child(5) {
     z-index: 1;
     transform: translateX(-160px);
 }

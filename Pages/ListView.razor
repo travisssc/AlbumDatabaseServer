@@ -1,0 +1,14 @@
+﻿@page "/{userName}/lists/{listName}"
+@using AlbumDatabaseServer.Data
+@inject AlbumService AlbumService
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<h3>ListView</h3>
+
+@code {
+    [Parameter] public string userName { get; set; }
+    [Parameter] public string listName { get; set; }
+
+}

@@ -23,10 +23,10 @@
                     @onmouseenter="() => isDecadePanelExpanded = true"
                     @onmouseleave="() => isDecadePanelExpanded = false">
             <div class="decades-container">
-                <h3 class="sort-label" @onclick="() => DecadeSort(0)">All</h3>
+                <p class="sort-label" @onclick="() => DecadeSort(0)">All</p>
                 @foreach (var decade in decades)
                 {
-                    <h3 class="sort-label" @onclick="() => DecadeSort(decade)">@decade's</h3>
+                    <p class="sort-label" @onclick="() => DecadeSort(decade)">@decade's</p>
                 }
             </div>
         </MudExpansionPanel>
@@ -36,10 +36,10 @@
                     @onmouseenter="() => isGenrePanelExpanded = true"
                     @onmouseleave="() => isGenrePanelExpanded = false">
             <div class="genres-container">
-                <h3 class="sort-label" @onclick="() => ResetGenreSort()">Any</h3>
+                <p class="sort-label" @onclick="() => ResetGenreSort()">Any</p>
                 @foreach (var genre in genres)
                 {
-                    <h5 class="sort-label" @onclick="() => GenreSort(genre)">@genre.Name</h5>
+                    <p class="sort-label" @onclick="() => GenreSort(genre)">@genre.Name</p>
                 }
             </div>
         </MudExpansionPanel>
@@ -50,42 +50,42 @@
                     @onmouseleave="() => isSortPanelExpanded = false">
             <div class="general-sort-container">
                 <div class="sort-type">
-                    <h3 class="sub-type name @((sortId == 0) ? "active" : "")" @onclick="() => GeneralSort(0)">Album Name</h3>
+                    <p class="sub-type name @((sortId == 0) ? "active" : "")" @onclick="() => GeneralSort(0)">Album Name</p>
                 </div>
                 <div class="sort-type">
                     @if (listType == "listened")
                     {
-                        <h3 class="sort-label-nofunc">Listen Date</h3>
+                        <p class="sort-label-nofunc">Listen Date</p>
                     }
                     else if (listType == "queued")
                     {
-                        <h3 class="sort-label-nofunc">Queue Date</h3>
+                        <p class="sort-label-nofunc">Queue Date</p>
                     }
                     else if (listType == "favorited")
                     {
-                        <h3 class="sort-label-nofunc">Favorite Date</h3>
+                        <p class="sort-label-nofunc">Favorite Date</p>
                     }
                     else if (listType == "reviewed")
 					{
-						<h3 class="sort-label-nofunc">Review Date</h3>
+						<p class="sort-label-nofunc">Review Date</p>
                     }
-                    <h3 class="sub-type @((sortId == 1) ? "active" : "")" @onclick="() => GeneralSort(1)">Newest First</h3>
-                    <h3 class="sub-type @((sortId == 2) ? "active" : "")" @onclick="() => GeneralSort(2)">Earliest First</h3>
+                    <p class="sub-type @((sortId == 1) ? "active" : "")" @onclick="() => GeneralSort(1)">Newest First</p>
+                    <p class="sub-type @((sortId == 2) ? "active" : "")" @onclick="() => GeneralSort(2)">Earliest First</p>
                 </div>
                 <div class="sort-type">
-                    <h3 class="sort-label-nofunc">Release Date</h3>
-                    <h3 class="sub-type @((sortId == 3) ? "active" : "")" @onclick="() => GeneralSort(3)">Newest First</h3>
-                    <h3 class="sub-type @((sortId == 4) ? "active" : "")" @onclick="() => GeneralSort(4)">Earliest First</h3>
+                    <p class="sort-label-nofunc">Release Date</p>
+                    <p class="sub-type @((sortId == 3) ? "active" : "")" @onclick="() => GeneralSort(3)">Newest First</p>
+                    <p class="sub-type @((sortId == 4) ? "active" : "")" @onclick="() => GeneralSort(4)">Earliest First</p>
                 </div>
                 <div class="sort-type">
-                    <h3 class="sort-label-nofunc">Average Rating</h3>
-                    <h3 class="sub-type @((sortId == 5) ? "active" : "")" @onclick="() => GeneralSort(5)">Highest First</h3>
-                    <h3 class="sub-type @((sortId == 6) ? "active" : "")" @onclick="() => GeneralSort(6)">Lowest First</h3>
+                    <p class="sort-label-nofunc">Average Rating</p>
+                    <p class="sub-type @((sortId == 5) ? "active" : "")" @onclick="() => GeneralSort(5)">Highest First</p>
+                    <p class="sub-type @((sortId == 6) ? "active" : "")" @onclick="() => GeneralSort(6)">Lowest First</p>
                 </div>
                 <div class="sort-type">
-                    <h3 class="sort-label-nofunc">Your Rating</h3>
-                    <h3 class="sub-type @((sortId == 7) ? "active" : "")" @onclick="() => GeneralSort(7)">Highest First</h3>
-                    <h3 class="sub-type @((sortId == 8) ? "active" : "")" @onclick="() => GeneralSort(8)">Lowest First</h3>
+                    <p class="sort-label-nofunc">Your Rating</p>
+                    <p class="sub-type @((sortId == 7) ? "active" : "")" @onclick="() => GeneralSort(7)">Highest First</p>
+                    <p class="sub-type @((sortId == 8) ? "active" : "")" @onclick="() => GeneralSort(8)">Lowest First</p>
                 </div>
             </div>
         </MudExpansionPanel>

@@ -1,4 +1,4 @@
-﻿@page "/profile/{tabName}"
+﻿@page "/{username}/{tabName}"
 @using AlbumDatabaseServer.Data
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -11,23 +11,20 @@
 <PageTitle>@username's profile • Waveformd</PageTitle>
 <div class="body">
 	<div class="profile-header">
-		@if (isUserLoggedIn)
-		{
-			<div class="profile-picture" @onclick="EditProfilePicture">
-				<img src="@profilePictureUrl" class="profile-image" />
-				<span class="material-symbols-outlined edit">
-					edit
-				</span>
-				<label class="edit edit-text">Choose photo</label>
-			</div>
-			<div class="profile-item">
-				<h1>@username</h1>
-			</div>
-			<div class="record-count">
-				<h2 class="count-number">@listenCount</h2>
-				<subtitle1 class="count-text">Albums</subtitle1>
-			</div>
-		}
+		<div class="profile-picture" @onclick="EditProfilePicture">
+			<img src="@profilePictureUrl" class="profile-image" />
+			<span class="material-symbols-outlined edit">
+				edit
+			</span>
+			<label class="edit edit-text">Choose photo</label>
+		</div>
+		<div class="profile-item">
+			<h1>@username</h1>
+		</div>
+		<div class="record-count">
+			<h2 class="count-number">@listenCount</h2>
+			<subtitle1 class="count-text">Albums</subtitle1>
+		</div>
 	</div>
 	<div class="profile-tray">
 		<button class="profile profile-tab @(tabName == "home" ? "active" : "")"
@@ -59,7 +56,7 @@
 	<div class="tab-content">
 		@switch (tabName)
 		{
-			case "home":
+			case "profile":
 				<ProfileTabP />
 				break;
 			case "albums":
@@ -83,9 +80,10 @@
 </div>
 
 @code {
+	[Parameter] public string username { get; set; }
 	[Parameter] public string tabName { get; set; }
+	private string currentUsername;
 	private bool isUserLoggedIn;
-	private string username;
 	private int tabIndex = 0;
 	private string profilePictureUrl = "profile-pictures/default-profile.png";
 	private int listenCount = 0;
@@ -93,22 +91,17 @@
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 		var user = authState.User;
-		isUserLoggedIn = user.Identity.IsAuthenticated;
-		if (isUserLoggedIn)
-		{
-			username = user.Identity.Name;
-			listenCount = await UserService.CountListenedAlbumsAsync(username);
-			var profilePicture = await UserService.GetAccountPicAsync(username);
-			if (profilePicture != string.Empty)
-            {
-                profilePictureUrl = profilePicture;
-            }
-		}
-		Console.WriteLine("User logged in");
+		isUserLoggedIn = user.Identity.IsAuthenticated && user.Identity.Name == username; 
+		listenCount = await UserService.CountListenedAlbumsAsync(username);
+		var profilePicture = await UserService.GetAccountPicAsync(username);
+		if (profilePicture != string.Empty)
+        {
+            profilePictureUrl = profilePicture;
+        }
 	}
 	private void HandleNavigation(string newTabName)
 	{
-		NavigationManager.NavigateTo($"/profile/{newTabName}");
+		NavigationManager.NavigateTo($"/{username}/{newTabName}");
 	}
 	private async Task EditProfilePicture()
 	{

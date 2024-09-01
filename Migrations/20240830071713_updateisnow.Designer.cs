@@ -3,6 +3,7 @@ using System;
 using AlbumDatabaseServer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AlbumDatabaseServer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240830071713_updateisnow")]
+    partial class updateisnow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -701,7 +704,7 @@ namespace AlbumDatabaseServer.Migrations
                         .IsRequired();
 
                     b.HasOne("AlbumDatabaseServer.Data.AlbumLists", "List")
-                        .WithMany("ListAlbums")
+                        .WithMany()
                         .HasForeignKey("ListId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -803,11 +806,6 @@ namespace AlbumDatabaseServer.Migrations
                     b.Navigation("AlbumGenres");
 
                     b.Navigation("Songs");
-                });
-
-            modelBuilder.Entity("AlbumDatabaseServer.Data.AlbumLists", b =>
-                {
-                    b.Navigation("ListAlbums");
                 });
 
             modelBuilder.Entity("AlbumDatabaseServer.Data.Genre", b =>

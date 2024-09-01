@@ -4,18 +4,26 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<button class="queue-button">
-	<div class="queue-container">
-		@if (queuedAlbums == null)
+<button class="display-button">
+	<div class="display-container">
+		@if (albums == null)
 		{
 			<p>Add something to the queue!</p>
 		}
 		else
 		{
-			@foreach (var album in queuedAlbums)
+			@foreach (var album in albums)
 			{
-				<img src="@album.AlbumCover" class="q-album-cover" />
+				<div class="album-cover-container">
+					<img src="@album.AlbumCover" class="album-cover" />
+				</div>
 			}
+			@for (int i = 0; i < 5 - albums.Count; i++)
+            {
+				<div class="album-cover-container">
+					<div class="default-cover"></div>
+				</div>
+            }
 		}
 	</div>
 </button>
@@ -23,18 +31,39 @@
 @code {
 	[Parameter]
 	public string Username { get; set; }
-	private List<Album> queuedAlbums;
+	[Parameter]
+	public string ListType { get; set; }
+	[Parameter]
+	public int ListId { get; set; }
+	private List<Album> albums;
 
 	protected override async Task OnInitializedAsync()
 	{
-		var queuedAlbumsList = await UserService.GetQueuedAlbumsAsync(Username);
-		if (queuedAlbumsList.Any())
+		if (ListType == "queued")
 		{
-			queuedAlbums = queuedAlbumsList
-				.Select(q => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == q.AlbumId))
-				.Where(album => album != null)
-				.Take(5)
-				.ToList();
+			var albumsList = await UserService.GetQueuedAlbumsAsync(Username);
+			if (albumsList.Any())
+			{
+				albums = albumsList
+					.Select(q => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == q.AlbumId))
+					.Where(album => album != null)
+					.Take(5)
+					.ToList();
+			}
+		}
+		else if (ListType == "albumlist")
+		{
+			var albumsList = await UserService.GetListAsync(ListId);
+
+			if (albumsList.ListAlbums.Any())
+            {
+                albums = albumsList.ListAlbums
+                    .Select(la => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == la.AlbumId))
+                    .Where(album => album != null)
+                    .Take(5)
+                    .ToList();
+            }
+
 		}
 	}
 }

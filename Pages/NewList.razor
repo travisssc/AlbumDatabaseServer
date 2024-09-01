@@ -1,63 +1,74 @@
 ﻿@page "/list/new"
 @using AlbumDatabaseServer.Data
+@using AlbumDatabaseServer.Components
+@using Microsoft.EntityFrameworkCore
 @inject UserService UserService
+@inject IDbContextFactory<ApplicationDbContext> _dbContextFactory
 @inject AlbumService AlbumService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="container">
-    <h1 class="header-text">New List</h1>
+    <div class="header">
+        <h1 class="header-text">New List</h1>
+    </div>
     <hr class="divider" />
-    <EditForm Model="@newList" OnValidSubmit="@CreateListAsync">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-        <div class="input-container">
-            <div class="list-info">
-                <div class="form-group">
-                    <label for="listName" class="input-label">List Name</label>
-                    <InputText id="listName" class="form-control" @bind-Value="newList.ListName" />
-                </div>
-                <div class="form-group">
-                    <label for="albumSearch" class="input-label">Add Albums</label>
-                    <div class="search-with-button">
-                        <InputText id="albumSearch" class="form-control" @bind-Value="albumSearchQuery"
-                            @oninput="SearchAlbums" placeholder="Search for albums..." />
-                        <button type="button" class="button">Add Album</button>
-                        <button type="submit" class="button save">Save</button>
+    <div class="list-form">
+        <EditForm Model="@newList" OnValidSubmit="@CreateListAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <button type="submit" class="button-save">Save List</button>
+            <div class="input-container">
+                <div class="list-info">
+                    <div class="form-group">
+                        <label for="listName" class="input-label">List Name</label>
+                        <InputText id="listName" class="form-control" @bind-Value="newList.ListName" />
                     </div>
-                    @if (searchResults != null && searchResults.Any())
-                    {
-                        <ul class="list-group">
-                            @foreach (var album in searchResults)
-                            {
-                                <li class="list-group-item" @onclick="() => AddAlbumToList(album)">
-                                    @album.Name (@album.ReleaseDate.Year) - @album.Artist.ArtistName
-                                </li>
-                            }
-                        </ul>
-                    }
-                </div>
-                @if (newListAlbums.Any())
-                {
-                    <div class="album-list" id="album-list">
-                        @foreach (var listAlbum in newListAlbums)
+                    <div class="form-group">
+                        <label for="albumSearch" class="input-label">Add Albums</label>
+                        <div class="search-with-button">
+                            <InputText id="albumSearch" class="form-control" @bind-Value="albumSearchQuery"
+                                       @oninput="SearchAlbums" placeholder="Search for albums..." />
+                        </div>
+                        @if (searchResults != null && searchResults.Any() && isSearching)
                         {
-                            <div class="list-item" data-id="@listAlbum.AlbumId">
-                                <img class="album-cover" src="@listAlbum.AlbumCover" />
-                                @*<h4>@listAlbum.Position</h4>*@
-                            </div>
+                            <ul class="list-group">
+                                @foreach (var album in searchResults)
+                                {
+                                    <li class="list-group-item" @onclick="() => AddAlbumToList(album)">
+                                        <img src="@album.AlbumCover" class="item-image" />
+                                        @album.Name (@album.ReleaseDate.Year) - @album.Artist.ArtistName
+                                    </li>
+                                }
+                            </ul>
                         }
                     </div>
-                }
-            </div>
-            <div class="list-description">
-                <div class="form-group">
-                    <label for="description" class="input-label">Description</label>
-                    <InputTextArea id="description" class="form-control description" @bind-Value="newList.Description" />
+                    <div class="list-container">
+                        @if (newListAlbums.Any())
+                        {
+                            <SortableList id="sortable" Items="newListAlbums" Context="Album" OnUpdate="@UpdateList">
+                                <SortableItemTemplate>
+                                    <div class="album-card">
+                                        <img class="album-cover" src="@Album.AlbumCover" />
+                                        <span class="material-symbols-outlined close" @onclick="() => RemoveAlbumFromList(Album)">
+                                            close
+                                        </span>
+                                        <label class="card-index">@(newListAlbums.IndexOf(Album) + 1)</label>
+                                    </div>
+                                </SortableItemTemplate>
+                            </SortableList>
+                        }
+                    </div>
+                </div>
+                <div class="list-description">
+                    <div class="form-group">
+                        <label for="description" class="input-label">Description</label>
+                        <InputTextArea id="description" class="form-control description" @bind-Value="newList.Description" />
+                    </div>
                 </div>
             </div>
-        </div>
-    </EditForm>
+        </EditForm>
+    </div>
 </div>
 
 
@@ -66,6 +77,7 @@
     private List<Album> searchResults = new List<Album>();
     private List<Album> newListAlbums = new List<Album>();
     private string albumSearchQuery = "";
+    private bool isSearching = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -83,6 +95,7 @@
 
     private async Task SearchAlbums(ChangeEventArgs e)
     {
+        isSearching = true;
         albumSearchQuery = e.Value?.ToString();
         if (!string.IsNullOrEmpty(albumSearchQuery))
         {
@@ -96,6 +109,8 @@
 
     private void AddAlbumToList(Album album)
     {
+        isSearching = false;
+        albumSearchQuery = string.Empty;
         if (!newListAlbums.Contains(album))
         {
             newListAlbums.Add(album);
@@ -109,13 +124,39 @@
 
     private async Task CreateListAsync()
     {
-        newList.ListAlbums = newListAlbums.Select((album, index) => new ListAlbum
-            {
-                AlbumId = album.AlbumId,
-                Position = index + 1
-            }).ToList();
-
-        //await AlbumService.CreateListAsync(newList);
+        using var context = _dbContextFactory.CreateDbContext();
+        context.Lists.Add(newList);
+        await context.SaveChangesAsync();
+        foreach (var album in newListAlbums)
+        {
+            context.ListAlbums.Add(new ListAlbum {
+                ListId = newList.ListId, 
+                AlbumId = album.AlbumId, 
+                Position = newListAlbums.IndexOf(album)});
+        }
+        await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/profile/lists"); // Redirect to the lists page after creation
+    }
+    public void UpdateList((int oldIndex, int newIndex) indices)
+    {
+        // deconstruct the tuple
+        var (oldIndex, newIndex) = indices;
+
+        var items = this.newListAlbums;
+        var itemToMove = items[oldIndex];
+        items.RemoveAt(oldIndex);
+
+        if (newIndex < items.Count)
+        {
+            {
+                items.Insert(newIndex, itemToMove);
+            }
+        }
+        else
+        {
+            {
+                items.Add(itemToMove);
+            }
+        }
     }
 }

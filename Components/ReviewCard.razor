@@ -12,7 +12,7 @@
 	<div class="review-content">
 		<div class="album-info">
 			<div class="album-name-year">
-				<h2 class="album-name">@album.Name</h2>
+				<h2 class="album-name" @onclick="() => HandleNavigation(album)">@album.Name</h2>
 				<h3 class="album-year">@album.ReleaseDate.ToString("yyyy")</h3>
 			</div>
 			<h3 class="album-artist">@album.Artist.ArtistName</h3>
@@ -64,6 +64,12 @@
 			var review = await UserService.GetReviewAsync(album.AlbumId, userName);
 			reviewText = review.ReviewText;
 		}
+	}
+	private void HandleNavigation(Album album)
+	{
+		var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
+		var encodedAlbumName = Uri.EscapeDataString(album.Name);
+		NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
 	}
 
 }

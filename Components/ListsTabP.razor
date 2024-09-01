@@ -5,23 +5,90 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<body>
-	@if (!lists.Any())
+<PageTitle>@userName's lists • Waveformd</PageTitle>
+<div class="body">
+	@if (lists == null)
 	{
 		<div class="no-lists-dialogue">
 			<h4>You haven't created any lists yet!</h4>
 			<h4 class="button-create-list" @onclick="CreateList">Ready to start?</h4>
-		</div>	
+		</div>
 	}
-</body>
+	else
+	{
+		<div class="header-container">
+			<div class="name-create">
+				<h2 class="header-text">Your Lists</h2>
+				<button class="header-button-create" @onclick="CreateList">Start a new list</button>
+			</div>
+			<div class="list-sort">
+				<MudExpansionPanel Text="@sortText" IsExpanded="@isSortPanelExpanded"
+									@onmouseenter="() => isSortPanelExpanded = true"
+									@onmouseleave="() => isSortPanelExpanded = false">
+					<div class="sort-container">
+						<div class="sort-type">
+							<p class="sub-type name @((sortId == 0) ? "active" : "")" @onclick="() => GeneralSort(0)">List Name</p>
+						</div>
+						<div class="sort-type">
+							<p class="sub-type @((sortId == 1) ? "active" : "")" @onclick="() => GeneralSort(1)">Last Updated</p>
+						</div>
+						<div class="sort-type">
+							<p class="sort-label-nofunc">Date Published</p>
+							<p class="sub-type @((sortId == 2) ? "active" : "")" @onclick="() => GeneralSort(2)">Newest First</p>
+							<p class="sub-type @((sortId == 3) ? "active" : "")" @onclick="() => GeneralSort(3)">Oldest First</p>
+						</div>
+					</div>
+				</MudExpansionPanel>
+			</div>
+		</div>
+		<hr class="divider" />
+		<div class="list-container">
+            @foreach (var list in GetPaginatedLists())
+            {
+                <div class="list-item">
+					<ListDisplay Username="@userName" ListType="albumlist" ListId="@list.ListId" />
+					<div class="list-info">
+						<h3 class="list-name">@list.ListName</h3>
+						<p class="list-count">@list.ListAlbums.Count albums</p>
+						<p class="list-description">@list.Description</p>
+						@* <p>Created: @datesListsCreated[list.ListId].ToShortDateString()</p>
+						<p>Last Updated: @datesListsUpdated[list.ListId].ToShortDateString()</p> *@
+					</div>
+                </div>
+				<hr class="divider" />
+            }
+        </div>
+        <div class="pagination-controls">
+            @foreach (var pageNumber in GetPageNumbers())
+            {
+                if (pageNumber == -1)
+                {
+                    <span class="ellipsis">...</span>
+                }
+                else
+                {
+                    <button @onclick="() => SetPage(pageNumber)"
+                            class="@(pageNumber == pageIndex ? "active-page" : "")">
+                        @pageNumber
+                    </button>
+                }
+            }
+        </div>
+    
+	}
+</div>
 @code {
-	private List<AlbumLists> lists = new();
+	private List<AlbumLists> allLists;
+	private List<AlbumLists> lists;
 	private string userName;
 	private Dictionary<int, DateTime> datesListsCreated = new();
 	private Dictionary<int, DateTime> datesListsUpdated = new();
 	private int pageIndex = 1;
 	private int totalPages;
 	private const int pageSize = 12;
+	private bool isSortPanelExpanded = false;
+	private string sortText = "Sort by Last Updated";
+	private int sortId = 1;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -30,17 +97,99 @@
 		if (user.Identity.IsAuthenticated)
 		{
 			userName = user.Identity.Name;
-			lists = await UserService.GetListsAsync(userName);
-			foreach (var list in lists)
+			var albumLists = await UserService.GetListsAsync(userName);
+			if (albumLists.Any())
 			{
-				datesListsCreated[list.ListId] = await UserService.GetDateListCreatedAsync(userName, list.ListId);
-				datesListsUpdated[list.ListId] = await UserService.GetDateListUpdatedAsync(userName, list.ListId);
+				allLists = albumLists;
+				foreach (var list in allLists)
+				{
+					datesListsCreated[list.ListId] = await UserService.GetDateListCreatedAsync(userName, list.ListId);
+					datesListsUpdated[list.ListId] = await UserService.GetDateListUpdatedAsync(userName, list.ListId);
+				}
+				lists = new List<AlbumLists>(allLists);
+				totalPages = (int)Math.Ceiling(lists.Count / (double)pageSize);
 			}
-			totalPages = (int)Math.Ceiling(lists.Count / (double)pageSize);
 		}
 	}
-	protected async Task CreateList()
+	private void CreateList()
 	{
 		NavigationManager.NavigateTo("/list/new");
+	}
+	private List<AlbumLists> GetPaginatedLists()
+	{
+		return lists
+		.Skip((pageIndex - 1) * pageSize)
+		.Take(pageSize)
+		.ToList();
+	}
+	private void SetPage(int pageNum)
+	{
+		pageIndex = pageNum;
+	}
+	private IEnumerable<int> GetPageNumbers()
+	{
+		if (totalPages <= 5)
+		{
+			return Enumerable.Range(1, totalPages);
+		}
+		var pages = new List<int>();
+		if (pageIndex == 1)
+		{
+			pages.AddRange(Enumerable.Range(1, pageIndex + 2));
+			pages.Add(-1);
+			pages.Add(totalPages);
+		}
+		else if (pageIndex > 1 && pageIndex < 5)
+		{
+			pages.AddRange(Enumerable.Range(1, pageIndex + 2));
+			pages.Add(-1); // Ellipsis
+			pages.Add(totalPages);
+		}
+		else if (pageIndex > 4 && pageIndex < totalPages - 2)
+		{
+			pages.Add(1);
+			pages.Add(-1); // Ellipsis
+			pages.AddRange(Enumerable.Range(pageIndex - 2, 5));
+			pages.Add(-1);
+			pages.Add(totalPages);
+		}
+		else if (pageIndex >= totalPages - 2 && pageIndex < totalPages)
+		{
+			pages.Add(1);
+			pages.Add(-1);
+			pages.AddRange(Enumerable.Range(pageIndex - 2, totalPages - pageIndex + 3));
+		}
+		else
+		{
+			pages.Add(1);
+			pages.Add(-1);
+			pages.AddRange(Enumerable.Range(pageIndex - 2, 3));
+		}
+
+
+		return pages;
+	}
+	private async Task GeneralSort(int id)
+	{
+		sortId = id;
+		switch (id)
+		{
+            case 0:
+                lists = allLists.OrderBy(l => l.ListName).ToList();
+                sortText = "Sort by List Name";
+                break;
+            case 1:
+                lists = allLists.OrderByDescending(l => datesListsUpdated[l.ListId]).ToList();
+                sortText = "Sort by Last Updated";
+                break;
+            case 2:
+                lists = allLists.OrderByDescending(l => datesListsCreated[l.ListId]).ToList();
+                sortText = "Sort by Newest First";
+                break;
+            case 3:
+                lists = allLists.OrderBy(l => datesListsCreated[l.ListId]).ToList();
+                sortText = "Sort by Oldest First";
+                break;
+        }
 	}
 }

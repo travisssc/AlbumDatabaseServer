@@ -12,7 +12,6 @@ namespace AlbumDatabaseServer.Data
 
         [Required]
         public string Name { get; set; }
-        public int? SongCount { get; set; }
         public DateTime ReleaseDate { get; set; }
         public int? MediaType { get; set; }
         public string AlbumCover {  get; set; } = string.Empty;
