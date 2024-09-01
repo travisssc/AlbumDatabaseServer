@@ -61,8 +61,10 @@
 </div>
 
 @code {
-    private string userName;
-    private string favoritedText = "You haven't favorited to any albums...";
+    [Parameter] public string userName { get; set; }
+    private string currentUsername;
+    private bool isUserLoggedIn;
+    private string favoritedText;
     private List<Album> allFavoriteAlbums; // Master list
     private List<Album> favoriteAlbums;
     private int pageIndex = 1;
@@ -75,25 +77,26 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        if (user.Identity.IsAuthenticated)
+        currentUsername = user.Identity.Name;
+        isUserLoggedIn = user.Identity.IsAuthenticated && currentUsername == userName;
+        var favoriteAlbumsList = await UserService.GetFavoriteAlbumsAsync(userName);
+        favoritedText = isUserLoggedIn ? "You haven't favorited to any albums..." 
+            : userName + " hasn't favorited any albums...";
+        if (favoriteAlbumsList.Any())
         {
-            userName = user.Identity.Name;
-            var favoriteAlbumsList = await UserService.GetFavoriteAlbumsAsync(userName);
-            if (favoriteAlbumsList.Any())
+            allFavoriteAlbums = favoriteAlbumsList
+                .Select(favorite => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == favorite.AlbumId))
+                .Where(album => album != null)
+                .ToList();
+            favoritedText = (isUserLoggedIn ? $"You've favorited {allFavoriteAlbums.Count()} albums" 
+                : userName + $" has favorited {allFavoriteAlbums.Count()} albums");
+            foreach (var album in allFavoriteAlbums)
             {
-                allFavoriteAlbums = favoriteAlbumsList
-                    .Select(favorite => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == favorite.AlbumId))
-                    .Where(album => album != null)
-                    .ToList();
-                favoritedText = $"You've favorited {allFavoriteAlbums.Count()} albums";
-                foreach (var album in allFavoriteAlbums)
-                {
-                    var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName); ;
-                    albumRatings[album.AlbumId] = rating;
-                }
-                favoriteAlbums = new List<Album>(allFavoriteAlbums);
-                totalPages = (int)Math.Ceiling((double)favoriteAlbums.Count / pageSize);
+                var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName); ;
+                albumRatings[album.AlbumId] = rating;
             }
+            favoriteAlbums = new List<Album>(allFavoriteAlbums);
+            totalPages = (int)Math.Ceiling((double)favoriteAlbums.Count / pageSize);
         }
     }
     private void HandleAlbumsChanged(List<Album> newAlbums)

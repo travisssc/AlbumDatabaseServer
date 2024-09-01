@@ -4,11 +4,129 @@
 @inject UserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@using AlbumDatabaseServer.Components
 
-<h3>ListView</h3>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<PageTitle>@listName, a list of albums by @userName • Waveformd</PageTitle>
+<div class="body">
+    @if (albumList == null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <div class="list-container">
+            <div class="list-info">
+                <div class="list-header">
+                    <div class="profile-info">
+                        <img src="@profilePictureUrl" class="profile-picture" />
+                        <div class="header-text">
+                            <p>List by </p>
+                            <p class="username-text" @onclick="() => HandleNavigation(userName)">@userName</p>
+                        </div>
+                    </div>
+                    <p class="update-text">Updated @FormatTimeToDate(albumList.DateUpdated)</p>
+                </div>
+                <hr class="divider" />
+                <h2 class="list-name">@albumList.ListName</h2>
+                <p class="list-description">@albumList.Description</p>
+            </div>
+            <div class="album-container">
+                @foreach (var album in albums)
+                {
+                    <div class="album-card">
+                        <AlbumComponent album="@album" displayInfo="false" />
+                        <p class="index-text">@(albums.IndexOf(album) + 1)</p>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="listened-container">
+            <div class="listened-text">
+                <p>You've listened to @heardCount of @albums.Count albums in this list</p>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: @(GetProgressPercentage())%;"></div>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     [Parameter] public string userName { get; set; }
     [Parameter] public string listName { get; set; }
+    private string profilePictureUrl = "profile-pictures/default-profile.png";
+    private string currentUsername;
+    private AlbumLists albumList;
+    private List<Album> albums;
+    private int listId;
+    private int heardCount;
+    private List<ListenedAlbums> currentUserListenedAlbums;
 
+    protected override async Task OnInitializedAsync()
+    {
+        var decodedListName = Uri.UnescapeDataString(listName);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        currentUsername = user.Identity.Name;
+        var profilePicture = await UserService.GetAccountPicAsync(userName);
+        if (profilePicture != string.Empty)
+        {
+            profilePictureUrl = profilePicture;
+        }
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("listId", out var id))
+        {
+            if (int.TryParse(id, out var parsedId))
+            {
+                listId = parsedId;
+            }
+        }
+        albumList = await UserService.GetListAsync(listId, userName);   
+        if (albumList != null)
+        {
+            albums = albumList.ListAlbums
+                .Select(la => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == la.AlbumId))
+                .Where(album => album != null)
+                .ToList();
+        }
+        if (currentUsername != null)
+        {
+            currentUserListenedAlbums = await UserService.GetListenedAlbumsAsync(currentUsername);
+            var albumCount = albumList.ListAlbums
+            .GroupBy(la => la.AlbumId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+            // Calculate heardCount
+            heardCount = currentUserListenedAlbums
+                .Where(listenedAlbum => albumCount.ContainsKey(listenedAlbum.AlbumId))
+                .Sum(listenedAlbum => albumCount[listenedAlbum.AlbumId]);
+        }
+    }
+    
+    private void HandleNavigation(string username)
+    {
+        NavigationManager.NavigateTo($"/{username}");
+    }
+
+    private string FormatTimeToDate(DateTime activityDate)
+    {
+        var timeSpan = DateTime.UtcNow - activityDate;
+        return timeSpan switch
+        {
+            { TotalMinutes: < 1 } => "just now",
+            { TotalMinutes: < 60 } => $"{(int)timeSpan.TotalMinutes} minutes ago",
+            { TotalHours: < 24 } => $"{(int)timeSpan.TotalHours} hours ago",
+            { TotalDays: < 7 } => $"{(int)timeSpan.TotalDays} days ago",
+            { TotalDays: < 30 } => $"{(int)timeSpan.TotalDays / 7} weeks ago",
+            { TotalDays: < 365 } => $"{(int)timeSpan.TotalDays / 30} months ago",
+            _ => $"{(int)timeSpan.TotalDays / 365} years ago"
+        };
+    }
+    private double GetProgressPercentage()
+    {
+        if (albums.Count == 0) return 0; // Avoid division by zero
+        return (double)heardCount / albums.Count * 100;
+    }
 }

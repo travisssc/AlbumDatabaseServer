@@ -6,7 +6,9 @@
 
 .sortable-list {
     display: flex;
-    gap: 16px;
+    gap: 14.3px;
+    flex-wrap: wrap;
+    max-width: 1152px;
 }
 
 ::deep .sortable-ghost {

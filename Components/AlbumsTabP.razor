@@ -61,8 +61,10 @@
 </div>
 
 @code {
-    private string userName;
-    private string listenedText = "You haven't listened to any albums...";
+    [Parameter] public string userName { get; set; }
+    private string currentUsername;
+    private bool isUserLoggedIn;
+    private string listenedText;
     private List<Album> allListenedAlbums; // Master list
     private List<Album> listenedAlbums;
     private int pageIndex = 1;
@@ -75,26 +77,27 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        if (user.Identity.IsAuthenticated)
+        currentUsername = user.Identity.Name;
+        isUserLoggedIn = user.Identity.IsAuthenticated && currentUsername == userName;
+        listenedText = isUserLoggedIn ? "You haven't listened to any albums..." 
+            : userName + " hasn't listened to any albums...";
+        var listenedAlbumsList = await UserService.GetListenedAlbumsAsync(userName);
+        if (listenedAlbumsList.Any())
         {
-            userName = user.Identity.Name;
-            var listenedAlbumsList = await UserService.GetListenedAlbumsAsync(userName);
-            if (listenedAlbumsList.Any())
+            allListenedAlbums = listenedAlbumsList
+                .Select(listened => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == listened.AlbumId))
+                .Where(album => album != null)
+                .ToList();
+            listenedText = isUserLoggedIn ? $"You've listened to {allListenedAlbums.Count()} albums" 
+                : userName + $" has listened to {allListenedAlbums.Count()} albums";
+            foreach (var album in allListenedAlbums)
             {
-                allListenedAlbums = listenedAlbumsList
-                    .Select(listened => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == listened.AlbumId))
-                    .Where(album => album != null)
-                    .ToList();
-                listenedText = $"You've listened to {allListenedAlbums.Count()} albums";
-                foreach (var album in allListenedAlbums)
-                {
-                    var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
-                    albumRatings[album.AlbumId] = rating;
-                    var listenDate = await UserService.GetDateListenedAsync(userName, album.AlbumId);
-                }
-                listenedAlbums = new List<Album>(allListenedAlbums); 
-                totalPages = (int)Math.Ceiling((double)listenedAlbums.Count / pageSize);
+                var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
+                albumRatings[album.AlbumId] = rating;
+                var listenDate = await UserService.GetDateListenedAsync(userName, album.AlbumId);
             }
+            listenedAlbums = new List<Album>(allListenedAlbums); 
+            totalPages = (int)Math.Ceiling((double)listenedAlbums.Count / pageSize);
         }
     }
     private void HandleAlbumsChanged(List<Album> newAlbums)

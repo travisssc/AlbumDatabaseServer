@@ -1,4 +1,4 @@
-﻿@page "/{username}/{tabName}"
+﻿@page "/{username}/{tabName?}"
 @using AlbumDatabaseServer.Data
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -11,13 +11,22 @@
 <PageTitle>@username's profile • Waveformd</PageTitle>
 <div class="body">
 	<div class="profile-header">
-		<div class="profile-picture" @onclick="EditProfilePicture">
-			<img src="@profilePictureUrl" class="profile-image" />
-			<span class="material-symbols-outlined edit">
-				edit
-			</span>
-			<label class="edit edit-text">Choose photo</label>
-		</div>
+		@if (isUserLoggedIn)
+		{
+			<div class="profile-picture logged-in" @onclick="EditProfilePicture">
+				<img src="@profilePictureUrl" class="profile-image logged-in" />
+				<span class="material-symbols-outlined edit">
+					edit
+				</span>
+				<label class="edit edit-text">Choose photo</label>
+			</div>
+		}
+		else
+		{
+			 <div class="profile-picture">
+                <img src="@profilePictureUrl" class="profile-image" />
+            </div>
+		}
 		<div class="profile-item">
 			<h1>@username</h1>
 		</div>
@@ -27,8 +36,8 @@
 		</div>
 	</div>
 	<div class="profile-tray">
-		<button class="profile profile-tab @(tabName == "home" ? "active" : "")"
-				@onclick="@(e => HandleNavigation("home"))">
+		<button class="profile profile-tab @(string.IsNullOrEmpty(tabName) ? "active" : "")"
+				@onclick="@(e => HandleNavigation(string.Empty))">
 			<h3>Profile</h3>
 		</button>
 		<button class="albums profile-tab @(tabName == "albums" ? "active" : "")"
@@ -56,25 +65,24 @@
 	<div class="tab-content">
 		@switch (tabName)
 		{
-			case "profile":
-				<ProfileTabP />
+			case null:
+				<ProfileTabP userName="@username" />
 				break;
 			case "albums":
-				<AlbumsTabP />
+				<AlbumsTabP userName="@username" />
 				break;
 			case "queue":
-				<QueueTabP />
+				<QueueTabP userName="@username" />
 				break;
 			case "reviews":
-				<ReviewsTabP />
+				<ReviewsTabP userName="@username" />
 				break;
 			case "lists":
-				<ListsTabP />
+				<ListsTabP userName="@username" />
 				break;
 			case "favorites":
-				<FavoritesTabP />
+				<FavoritesTabP userName="@username" />
 				break;
-		
 		}
 	</div>
 </div>
@@ -91,17 +99,20 @@
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 		var user = authState.User;
-		isUserLoggedIn = user.Identity.IsAuthenticated && user.Identity.Name == username; 
+		currentUsername = user.Identity.Name;
+		isUserLoggedIn = user.Identity.IsAuthenticated && currentUsername == username; 
 		listenCount = await UserService.CountListenedAlbumsAsync(username);
 		var profilePicture = await UserService.GetAccountPicAsync(username);
 		if (profilePicture != string.Empty)
-        {
-            profilePictureUrl = profilePicture;
-        }
+		{
+			profilePictureUrl = profilePicture;
+		}
 	}
 	private void HandleNavigation(string newTabName)
 	{
-		NavigationManager.NavigateTo($"/{username}/{newTabName}");
+		if (string.IsNullOrEmpty(newTabName)) NavigationManager.NavigateTo($"/{username}");
+		else NavigationManager.NavigateTo($"/{username}/{newTabName}");
+
 	}
 	private async Task EditProfilePicture()
 	{

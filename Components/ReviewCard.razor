@@ -46,18 +46,17 @@
 @code {
 	[Parameter] public Album album { get; set; }
 	[Parameter] public string width { get; set; }
+	[Parameter] public string userName { get; set; }
 	private int albumRating;
 	private bool isFavorited;
 	private DateTime dateListened;
 	private string reviewText;
-
+	 
 	protected override async Task OnParametersSetAsync()
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-		var user = authState.User;
-		if (user.Identity.IsAuthenticated && album != null)
+		if (album != null)
 		{
-			var userName = user.Identity.Name;
 			albumRating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
 			isFavorited = await UserService.IsAlbumFavoritedAsync(album.AlbumId, userName);
 			dateListened = await UserService.GetDateListenedAsync(userName, album.AlbumId);

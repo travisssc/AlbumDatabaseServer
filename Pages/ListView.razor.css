@@ -1,0 +1,112 @@
+﻿.body {
+    display: flex;
+    max-width: fit-content;
+    margin: 32px auto;
+    margin-top: 8px;
+    justify-content: center;
+}
+.list-container {
+    z-index: 1;
+    flex-wrap: wrap;
+    width: 1136px;
+    background: #121212;
+    border-radius: 10px;
+}
+.list-info {
+    padding: 32px;
+}
+.divider {
+    border: 1px solid #212121;
+    margin: 4px 0px 4px 0px;
+}
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.profile-info {
+    display: flex;
+    align-content: center;
+    align-items: center;
+}
+.profile-picture {
+    width: 32px;
+    height: 32px;
+    border-radius: 100vh;
+}
+.header-text {
+    margin-left: 16px;
+    display: flex;
+    color: #b3b3b3;
+}
+.username-text {
+    color: white;
+    font-weight: bold;
+    margin-left: 3px;
+}
+.username-text:hover {
+    cursor: pointer;
+    color: #3bade1;
+}
+.update-text {
+    color: #b3b3b3;
+}
+.list-name {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 16px 0px 16px 0px;
+}
+.list-description {
+    color: #b3b3b3;
+    margin-bottom: 16px;
+
+}
+.album-container {
+    width: 1136px;
+    display: flex;
+    padding: 8px;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+.album-card {
+    margin: 13px;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+}
+.index-text {
+    margin-top: 4px;
+}
+.listened-container {
+    margin-left: 8px;
+    display: flex;
+    flex-direction: column;
+    background: #121212;
+    height: 64px;
+    padding: 16px;
+    align-content: center;
+    align-items: center;
+    border-radius: 10px;
+}
+.listened-text {
+    padding-bottom: 8px;
+}
+.progress-bar-container {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    border-radius: 10px;
+    background-color: #535353;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #3bade1; /* Green color */
+    border-radius: 10px;
+    transition: width 0.3s ease; /* Smooth transition */
+}

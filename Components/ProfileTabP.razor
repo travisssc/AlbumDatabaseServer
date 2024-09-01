@@ -49,7 +49,7 @@
 				<div class="review-container">
 					@foreach (var album in reviewedAlbums)
 					{
-						<ReviewCard album="album" width="profile"/>
+						<ReviewCard album="album" width="profile" userName="@userName"/>
 					}
 				</div>
 			} 
@@ -97,7 +97,8 @@
 
 
 @code {
-	private string userName;
+	[Parameter] public string userName { get; set; }
+	private string currentUsername;
 	private List<Album> favoriteAlbums;
 	private List<Album> listenedAlbums;
 	private List<Album> reviewedAlbums;
@@ -109,65 +110,63 @@
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 		var user = authState.User;
-		if (user.Identity.IsAuthenticated)
+		currentUsername = user.Identity.Name;
+		var favoriteAlbumsList = await UserService.GetFavoriteAlbumsAsync(userName);
+		var listenedAlbumsList = await UserService.GetListenedAlbumsAsync(userName);
+		var reviewedAlbumsList = await UserService.GetReviewedAlbumsAsync(userName);
+		queueCount = await UserService.GetQueueCountAsync(userName);
+		ratingCount = await UserService.GetRatingCountAsync(userName);
+		var ratingNumbers = await UserService.GetRatingDistributionAsync(userName);
+		userActivities = await UserService.GetUserActivitiesAsync(userName);
+		var activityName = (currentUsername == userName) ? "You" : userName;
+		foreach (var activity in userActivities)
 		{
-			userName = user.Identity.Name;
-			var favoriteAlbumsList = await UserService.GetFavoriteAlbumsAsync(userName);
-			var listenedAlbumsList = await UserService.GetListenedAlbumsAsync(userName);
-			var reviewedAlbumsList = await UserService.GetReviewedAlbumsAsync(userName);
-			queueCount = await UserService.GetQueueCountAsync(userName);
-			ratingCount = await UserService.GetRatingCountAsync(userName);
-			var ratingNumbers = await UserService.GetRatingDistributionAsync(userName);
-			userActivities = await UserService.GetUserActivitiesAsync(userName);
-			foreach (var activity in userActivities)
+			var album = AlbumService.Albums.FirstOrDefault(a => a.AlbumId == activity.AlbumId);
+			if (album != null)
 			{
-				var album = AlbumService.Albums.FirstOrDefault(a => a.AlbumId == activity.AlbumId);
-				if (album != null)
+				activity.AlbumName = album.Name;
+				activity.ActivityType = activity.ActivityType switch
 				{
-					activity.AlbumName = album.Name;
-					activity.ActivityType = activity.ActivityType switch
-					{
-						"Queued" => "You added " + album.Name + " to your queue",
-						"Rated" => "You rated " + album.Name,
-						"Favorited" => "You favorited " + album.Name,
-						"Listened" => "You listened to " + album.Name,
-						"Reviewed" => "You reviewed " + album.Name,
-					};
-				}
+					"Queued" => activityName + " added " + album.Name + " to your queue",
+					"Rated" => activityName + " rated " + album.Name,
+					"Favorited" => activityName + " favorited " + album.Name,
+					"Listened" => activityName + " listened to " + album.Name,
+					"Reviewed" => activityName + " reviewed " + album.Name,
+				};
 			}
-			double[] ratingDistribution = { 0, 0, 0, 0, 0 };
-			foreach (var val in ratingNumbers)
-			{
-				ratingDistribution[(int)val - 1]++;
-			}
-			ratingChartSeries = new List<ChartSeries>()
-			{
-				new ChartSeries() { Name = "", Data = ratingDistribution }
-			};
-			if (favoriteAlbumsList.Any())
-			{
-				favoriteAlbums = favoriteAlbumsList
-					.Select(fav => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == fav.AlbumId))
-					.Where(album => album != null)
-					.Take(4)
-					.ToList();
-			}
-			if (listenedAlbumsList.Any())
-			{
-				listenedAlbums = listenedAlbumsList
-					.Select(listened => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == listened.AlbumId))
-					.Where(album => album != null)
-					.Take(4)
-					.ToList();
-			}
-			if (reviewedAlbumsList.Any())
-			{
-				reviewedAlbums = reviewedAlbumsList
-					.Select(review => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == review.AlbumId))
-					.Where(album => album != null)
-					.Take(2)
-					.ToList();
-			}
+		}
+		double[] ratingDistribution = { 0, 0, 0, 0, 0 };
+		foreach (var val in ratingNumbers)
+		{
+			ratingDistribution[(int)val - 1]++;
+		}
+		ratingChartSeries = new List<ChartSeries>()
+		{
+			new ChartSeries() { Name = "", Data = ratingDistribution }
+		};
+		if (favoriteAlbumsList.Any())
+		{
+			favoriteAlbums = favoriteAlbumsList
+				.Select(fav => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == fav.AlbumId))
+				.Where(album => album != null)
+				.Take(4)
+				.ToList();
+		}
+		if (listenedAlbumsList.Any())
+		{
+			listenedAlbums = listenedAlbumsList
+				.Select(listened => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == listened.AlbumId))
+				.Where(album => album != null)
+				.Take(4)
+				.ToList();
+		}
+		if (reviewedAlbumsList.Any())
+		{
+			reviewedAlbums = reviewedAlbumsList
+				.Select(review => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == review.AlbumId))
+				.Where(album => album != null)
+				.Take(2)
+				.ToList();
 		}
 	}
 	private string FormatTimeToDate(DateTime activityDate)
@@ -186,6 +185,6 @@
 	}
 	private void HandleNavigation(string newTabName)
 	{
-		NavigationManager.NavigateTo($"/profile/{newTabName}");
+		NavigationManager.NavigateTo($"/{userName}/{newTabName}");
 	}
 }

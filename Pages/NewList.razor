@@ -8,6 +8,7 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
+<PageTitle>Create a new list • Waveformd</PageTitle>
 <div class="container">
     <div class="header">
         <h1 class="header-text">New List</h1>
@@ -20,52 +21,54 @@
             <button type="submit" class="button-save">Save List</button>
             <div class="input-container">
                 <div class="list-info">
-                    <div class="form-group">
-                        <label for="listName" class="input-label">List Name</label>
-                        <InputText id="listName" class="form-control" @bind-Value="newList.ListName" />
-                    </div>
-                    <div class="form-group">
-                        <label for="albumSearch" class="input-label">Add Albums</label>
-                        <div class="search-with-button">
-                            <InputText id="albumSearch" class="form-control" @bind-Value="albumSearchQuery"
-                                       @oninput="SearchAlbums" placeholder="Search for albums..." />
+                    <div class="name-and-search">
+                        <div class="form-group">
+                            <label for="listName" class="input-label">List Name</label>
+                            <InputText id="listName" class="form-control" @bind-Value="newList.ListName" />
                         </div>
-                        @if (searchResults != null && searchResults.Any() && isSearching)
-                        {
-                            <ul class="list-group">
-                                @foreach (var album in searchResults)
-                                {
-                                    <li class="list-group-item" @onclick="() => AddAlbumToList(album)">
-                                        <img src="@album.AlbumCover" class="item-image" />
-                                        @album.Name (@album.ReleaseDate.Year) - @album.Artist.ArtistName
-                                    </li>
-                                }
-                            </ul>
-                        }
+                        <div class="form-group">
+                            <label for="albumSearch" class="input-label">Add Albums</label>
+                            <div class="search-with-button">
+                                <InputText id="albumSearch" class="form-control" @bind-Value="albumSearchQuery"
+                                           @oninput="SearchAlbums" placeholder="Search for albums..." />
+                            </div>
+                            @if (searchResults != null && searchResults.Any() && isSearching)
+                            {
+                                <ul class="list-group">
+                                    @foreach (var album in searchResults)
+                                    {
+                                        <li class="list-group-item" @onclick="() => AddAlbumToList(album)">
+                                            <img src="@album.AlbumCover" class="item-image" />
+                                            @album.Name (@album.ReleaseDate.Year) - @album.Artist.ArtistName
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
                     </div>
-                    <div class="list-container">
-                        @if (newListAlbums.Any())
-                        {
-                            <SortableList id="sortable" Items="newListAlbums" Context="Album" OnUpdate="@UpdateList">
-                                <SortableItemTemplate>
-                                    <div class="album-card">
-                                        <img class="album-cover" src="@Album.AlbumCover" />
-                                        <span class="material-symbols-outlined close" @onclick="() => RemoveAlbumFromList(Album)">
-                                            close
-                                        </span>
-                                        <label class="card-index">@(newListAlbums.IndexOf(Album) + 1)</label>
-                                    </div>
-                                </SortableItemTemplate>
-                            </SortableList>
-                        }
+                    <div class="list-description">
+                        <div class="form-group">
+                            <label for="description" class="input-label">Description</label>
+                            <InputTextArea id="description" class="form-control description" @bind-Value="newList.Description" />
+                        </div>
                     </div>
                 </div>
-                <div class="list-description">
-                    <div class="form-group">
-                        <label for="description" class="input-label">Description</label>
-                        <InputTextArea id="description" class="form-control description" @bind-Value="newList.Description" />
-                    </div>
-                </div>
+            </div>
+            <div class="list-container">
+                @if (newListAlbums.Any())
+                {
+                    <SortableList id="sortable" Items="newListAlbums" Context="Album" OnUpdate="@UpdateList">
+                        <SortableItemTemplate>
+                            <div class="album-card">
+                                <img class="album-cover" src="@Album.AlbumCover" />
+                                <span class="material-symbols-outlined close" @onclick="() => RemoveAlbumFromList(Album)">
+                                    close
+                                </span>
+                                <label class="card-index">@(newListAlbums.IndexOf(Album) + 1)</label>
+                            </div>
+                        </SortableItemTemplate>
+                    </SortableList>
+                }
             </div>
         </EditForm>
     </div>
@@ -78,6 +81,7 @@
     private List<Album> newListAlbums = new List<Album>();
     private string albumSearchQuery = "";
     private bool isSearching = false;
+    private string userName;
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,6 +89,7 @@
         var user = authState.User;
         if (user.Identity.IsAuthenticated)
         {
+            userName = user.Identity.Name;
             newList.UserId = user.Identity.Name;
         }
         else
@@ -135,7 +140,7 @@
                 Position = newListAlbums.IndexOf(album)});
         }
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/profile/lists"); // Redirect to the lists page after creation
+        NavigationManager.NavigateTo($"/{userName}/lists"); // Redirect to the lists page after creation
     }
     public void UpdateList((int oldIndex, int newIndex) indices)
     {

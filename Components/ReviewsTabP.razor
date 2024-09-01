@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <div class="body">
 	<div class="header-container">
+		<h2 class="header">@reviewText</h2>
 		<SortComponent allAlbums="@allReviewedAlbums"
 					   listType="reviewed"
 					   totalPages="@totalPages"
@@ -18,13 +19,15 @@
 	<div class="body-container">
 		@if (reviewedAlbums == null)
 		{
-			<p>You haven't written any reviews yet!</p>
+			<div class="no-review-container">
+				<p>You haven't written any reviews yet!</p>
+			</div>
 		}
 		else
 		{
 			@foreach (var album in GetPaginatedAlbums())
 			{
-				<ReviewCard album="album" />
+				<ReviewCard album="album" userName="@userName"/>
 			}
 		}
 	</div>
@@ -47,9 +50,12 @@
 </div>
 
 @code {
+	[Parameter] public string userName { get; set; }
+	private string currentUsername;
+	private bool isUserLoggedIn;
+	private string reviewText;
 	private List<Album> allReviewedAlbums;
 	private List<Album> reviewedAlbums;
-	private string userName;
 	private Dictionary<int, int> albumRatings = new();
 	private Dictionary<int, bool> albumFavorites = new();
 	private Dictionary<int, DateTime> albumDatesListened = new();
@@ -62,30 +68,31 @@
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 		var user = authState.User;
-		if (user.Identity.IsAuthenticated)
+		currentUsername = user.Identity.Name;
+		isUserLoggedIn = user.Identity.IsAuthenticated && currentUsername == userName;
+		reviewText = isUserLoggedIn ? "You haven't written any reviews yet..." 
+			: $"{userName} hasn't written any reviews yet...";
+		var reviewsList = await UserService.GetReviewedAlbumsAsync(userName);
+		if (reviewsList.Any())
 		{
-			userName = user.Identity.Name;
-			var reviewsList = await UserService.GetReviewedAlbumsAsync(userName);
-			if (reviewsList.Any())
+			allReviewedAlbums = reviewsList
+				.Select(review => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == review.AlbumId))
+				.Where(album => album != null)
+				.ToList();
+			reviewText = isUserLoggedIn ? $"Your reviews" : $"{userName}'s reviews";
+			foreach (var album in allReviewedAlbums)
 			{
-				allReviewedAlbums = reviewsList
-					.Select(review => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == review.AlbumId))
-					.Where(album => album != null)
-					.ToList();
-				foreach (var album in allReviewedAlbums)
-				{
-					var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
-					albumRatings[album.AlbumId] = rating;
-					var favorite = await UserService.IsAlbumFavoritedAsync(album.AlbumId, userName);
-					albumFavorites[album.AlbumId] = favorite;
-					var dateListened = await UserService.GetDateListenedAsync(userName, album.AlbumId);
-					albumDatesListened[album.AlbumId] = dateListened;
-					var review = await UserService.GetReviewAsync(album.AlbumId, userName);
-					albumReviews[album.AlbumId] = review.ReviewText;
-				}
-				reviewedAlbums = new List<Album>(allReviewedAlbums);
-				totalPages = (int)Math.Ceiling((double)reviewedAlbums.Count / pageSize);
+				var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
+				albumRatings[album.AlbumId] = rating;
+				var favorite = await UserService.IsAlbumFavoritedAsync(album.AlbumId, userName);
+				albumFavorites[album.AlbumId] = favorite;
+				var dateListened = await UserService.GetDateListenedAsync(userName, album.AlbumId);
+				albumDatesListened[album.AlbumId] = dateListened;
+				var review = await UserService.GetReviewAsync(album.AlbumId, userName);
+				albumReviews[album.AlbumId] = review.ReviewText;
 			}
+			reviewedAlbums = new List<Album>(allReviewedAlbums);
+			totalPages = (int)Math.Ceiling((double)reviewedAlbums.Count / pageSize);
 		}
 	}
 	private void HandleAlbumsChanged(List<Album> newAlbums)

@@ -3,6 +3,20 @@
     flex-direction: column;
     justify-content: flex-start;
 }
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.no-review-container {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    width: 1136px;
+    background: #121212;
+    padding: 8px;
+    border-radius: 10px;
+}
 .review-container {
     width: 1136px;
     display: flex;

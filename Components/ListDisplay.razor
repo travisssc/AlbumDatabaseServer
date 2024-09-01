@@ -53,7 +53,7 @@
 		}
 		else if (ListType == "albumlist")
 		{
-			var albumsList = await UserService.GetListAsync(ListId);
+			var albumsList = await UserService.GetListAsync(ListId, Username);
 
 			if (albumsList.ListAlbums.Any())
             {

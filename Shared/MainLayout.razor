@@ -18,7 +18,7 @@
         </a>
         <MudSpacer></MudSpacer>
         <LoginDisplay />
-        <a href="@(isUserLoggedIn ? "/profile/queue" : "/queue")">
+        <a href="@(isUserLoggedIn ? $"/{userName}/queue" : "/queue")">
             <div class="tab queue">
                 <span class="material-symbols-outlined">
                     queue_music
@@ -144,12 +144,13 @@
     private string _searchString = "";
     private string logoUrl = "logos/waveformd-logo.png";
     private bool isUserLoggedIn = false;
-
+    private string userName;
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         isUserLoggedIn = user.Identity.IsAuthenticated;
+        userName = user.Identity.Name;
     }
     private void HandleSearchKeyUp(KeyboardEventArgs e)
     {

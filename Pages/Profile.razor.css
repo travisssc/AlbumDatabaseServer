@@ -43,14 +43,14 @@
         cursor: default;
         text-align: center;
     }
-.profile-picture:hover .profile-image {
+.profile-picture:hover .profile-image.logged-in {
     opacity: 0.5;
 }
 .profile-picture:hover .edit {
     opacity: 1;
     z-index: 2;
 }
-.profile-picture:hover {
+.profile-picture.logged-in:hover {
     cursor: pointer;
 }
 .profile-image {

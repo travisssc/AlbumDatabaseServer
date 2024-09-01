@@ -28,8 +28,14 @@
 .list-info {
     width: 100%;
     padding-left: 16px;
+    display: flex;
+}
+.name-and-search {
+    display: flex;
+    flex-direction: column;
 }
 .list-description {
+    margin-left: 16px;
     width: 100%;
 }
 .form-group {
@@ -88,6 +94,7 @@
 }
 .list-container {
     margin-top: 32px;
+    max-width: 1136px;
 }
 .album-card {
     display: flex;

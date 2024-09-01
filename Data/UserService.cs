@@ -357,12 +357,12 @@ namespace AlbumDatabaseServer.Data
 				.FirstOrDefaultAsync(l => l.ListId == listId && l.UserId == userName);
 			return list?.DateUpdated ?? DateTime.MinValue;
 		}
-        public async Task<AlbumLists> GetListAsync(int listId)
+        public async Task<AlbumLists> GetListAsync(int listId, string userName)
         {
             using var context = _dbContextFactory.CreateDbContext();
             return await context.Lists
                 .Include(l => l.ListAlbums)
-                .FirstOrDefaultAsync(l => l.ListId == listId);
+                .FirstOrDefaultAsync(l => l.ListId == listId && l.UserId == userName);
         }
         
         // PROFILE PIC FUNCTIONS

@@ -52,8 +52,10 @@
 </div>
 
 @code {
-    private string userName;
-    private string queuedText = "You haven't added any albums to your queue...";
+    [Parameter] public string userName { get; set; }
+    private string currentUsername;
+    private bool isUserLoggedIn;
+    private string queuedText;
     private List<Album> allQueuedAlbums; // Master list
     private List<Album> queuedAlbums;
     private Dictionary<int, int> albumRatings = new();
@@ -65,25 +67,26 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        if (user.Identity.IsAuthenticated)
+        currentUsername = user.Identity.Name;
+        isUserLoggedIn = user.Identity.IsAuthenticated && currentUsername == userName;
+        queuedText = isUserLoggedIn ? "You haven't added any albums to your queue..."
+            : userName + " hasn't added any albums to their queue...";
+        var queuedAlbumsList = await UserService.GetQueuedAlbumsAsync(userName);
+        if (queuedAlbumsList.Any())
         {
-            userName = user.Identity.Name;
-            var queuedAlbumsList = await UserService.GetQueuedAlbumsAsync(userName);
-            if (queuedAlbumsList.Any())
+            allQueuedAlbums = queuedAlbumsList
+                .Select(queued => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == queued.AlbumId))
+                .Where(album => album != null)
+                .ToList();
+            queuedText = isUserLoggedIn ? $"You have {allQueuedAlbums.Count()} albums in your queue"
+                : userName + $" has {allQueuedAlbums.Count()} albums in their queue";
+            foreach (var album in allQueuedAlbums)
             {
-                allQueuedAlbums = queuedAlbumsList
-                    .Select(queued => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == queued.AlbumId))
-                    .Where(album => album != null)
-                    .ToList();
-                queuedText = $"You have {allQueuedAlbums.Count()} albums in your queue";
-                foreach (var album in allQueuedAlbums)
-                {
-                    var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
-                    albumRatings[album.AlbumId] = rating;
-                }
-                queuedAlbums = new List<Album>(allQueuedAlbums);
-                totalPages = (int)Math.Ceiling((double)queuedAlbums.Count / pageSize);
+                var rating = await UserService.GetRatingIntAsync(album.AlbumId, userName);
+                albumRatings[album.AlbumId] = rating;
             }
+            queuedAlbums = new List<Album>(allQueuedAlbums);
+            totalPages = (int)Math.Ceiling((double)queuedAlbums.Count / pageSize);
         }
     }
     private void HandleAlbumsChanged(List<Album> newAlbums)

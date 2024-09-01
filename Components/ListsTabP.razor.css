@@ -7,7 +7,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-
+}
+.create-list {
+    margin-left: 4px;
+    color: #3bade1;
+    cursor: pointer;
 }
 .name-create {
     display: flex;

@@ -12,7 +12,7 @@ namespace AlbumDatabaseServer.Data
         public string UserId { get; set; }
         public string ListName { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
-        public DateTime? DateUpdated { get; set; } = DateTime.UtcNow;
+        public DateTime DateUpdated { get; set; } = DateTime.UtcNow;
 		public List<ListAlbum> ListAlbums { get; set; } = new List<ListAlbum>();
 	}
 }

@@ -10,16 +10,22 @@
 	@if (lists == null)
 	{
 		<div class="no-lists-dialogue">
-			<h4>You haven't created any lists yet!</h4>
-			<h4 class="button-create-list" @onclick="CreateList">Ready to start?</h4>
+			<h4>@listsText</h4>
+			@if (isUserLoggedIn) 
+			{
+				<h4 class="create-list" @onclick="CreateList">Ready to start?</h4>
+			}
 		</div>
 	}
 	else
 	{
 		<div class="header-container">
 			<div class="name-create">
-				<h2 class="header-text">Your Lists</h2>
-				<button class="header-button-create" @onclick="CreateList">Start a new list</button>
+				<h2 class="header-text">@listsText</h2>
+				@if (isUserLoggedIn)
+				{
+					<button class="header-button-create" @onclick="CreateList">Start a new list</button>
+				}
 			</div>
 			<div class="list-sort">
 				<MudExpansionPanel Text="@sortText" IsExpanded="@isSortPanelExpanded"
@@ -46,9 +52,11 @@
             @foreach (var list in GetPaginatedLists())
             {
                 <div class="list-item">
-					<ListDisplay Username="@userName" ListType="albumlist" ListId="@list.ListId" />
+					<div @onclick="() => HandleNavigation(list)">
+						<ListDisplay Username="@userName" ListType="albumlist" ListId="@list.ListId" />
+					</div>
 					<div class="list-info">
-						<h3 class="list-name">@list.ListName</h3>
+						<h3 class="list-name" @onclick="() => HandleNavigation(list)">@list.ListName</h3>
 						<p class="list-count">@list.ListAlbums.Count albums</p>
 						<p class="list-description">@list.Description</p>
 						@* <p>Created: @datesListsCreated[list.ListId].ToShortDateString()</p>
@@ -78,9 +86,12 @@
 	}
 </div>
 @code {
+	[Parameter] public string userName { get; set; }
+	private string currentUsername;
+	private bool isUserLoggedIn;
+	private string listsText;
 	private List<AlbumLists> allLists;
 	private List<AlbumLists> lists;
-	private string userName;
 	private Dictionary<int, DateTime> datesListsCreated = new();
 	private Dictionary<int, DateTime> datesListsUpdated = new();
 	private int pageIndex = 1;
@@ -94,21 +105,22 @@
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 		var user = authState.User;
-		if (user.Identity.IsAuthenticated)
+		currentUsername = user.Identity.Name;
+		isUserLoggedIn = user.Identity.IsAuthenticated && currentUsername == userName;
+		listsText = isUserLoggedIn ? "You haven't created any lists yet!" 
+			: $"{userName} hasn't created any lists yet!";
+		var albumLists = await UserService.GetListsAsync(userName);
+		if (albumLists.Any())
 		{
-			userName = user.Identity.Name;
-			var albumLists = await UserService.GetListsAsync(userName);
-			if (albumLists.Any())
+			listsText = isUserLoggedIn ? "Your Lists" : $"{userName}'s Lists";
+			allLists = albumLists;
+			foreach (var list in allLists)
 			{
-				allLists = albumLists;
-				foreach (var list in allLists)
-				{
-					datesListsCreated[list.ListId] = await UserService.GetDateListCreatedAsync(userName, list.ListId);
-					datesListsUpdated[list.ListId] = await UserService.GetDateListUpdatedAsync(userName, list.ListId);
-				}
-				lists = new List<AlbumLists>(allLists);
-				totalPages = (int)Math.Ceiling(lists.Count / (double)pageSize);
+				datesListsCreated[list.ListId] = await UserService.GetDateListCreatedAsync(userName, list.ListId);
+				datesListsUpdated[list.ListId] = await UserService.GetDateListUpdatedAsync(userName, list.ListId);
 			}
+			lists = new List<AlbumLists>(allLists);
+			totalPages = (int)Math.Ceiling(lists.Count / (double)pageSize);
 		}
 	}
 	private void CreateList()
@@ -174,22 +186,27 @@
 		sortId = id;
 		switch (id)
 		{
-            case 0:
-                lists = allLists.OrderBy(l => l.ListName).ToList();
-                sortText = "Sort by List Name";
-                break;
-            case 1:
-                lists = allLists.OrderByDescending(l => datesListsUpdated[l.ListId]).ToList();
-                sortText = "Sort by Last Updated";
-                break;
-            case 2:
-                lists = allLists.OrderByDescending(l => datesListsCreated[l.ListId]).ToList();
-                sortText = "Sort by Newest First";
-                break;
-            case 3:
-                lists = allLists.OrderBy(l => datesListsCreated[l.ListId]).ToList();
-                sortText = "Sort by Oldest First";
-                break;
-        }
+			case 0:
+				lists = allLists.OrderBy(l => l.ListName).ToList();
+				sortText = "Sort by List Name";
+				break;
+			case 1:
+				lists = allLists.OrderByDescending(l => datesListsUpdated[l.ListId]).ToList();
+				sortText = "Sort by Last Updated";
+				break;
+			case 2:
+				lists = allLists.OrderByDescending(l => datesListsCreated[l.ListId]).ToList();
+				sortText = "Sort by Newest First";
+				break;
+			case 3:
+				lists = allLists.OrderBy(l => datesListsCreated[l.ListId]).ToList();
+				sortText = "Sort by Oldest First";
+				break;
+		}
+	}
+	private void HandleNavigation(AlbumLists list)
+	{
+		var encodedListName = Uri.EscapeDataString(list.ListName);
+		NavigationManager.NavigateTo($"{userName}/lists/{encodedListName}?listId={list.ListId}");
 	}
 }
