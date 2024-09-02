@@ -1,0 +1,112 @@
+﻿@page "/artists/{artistName}"
+@using AlbumDatabaseServer.Data
+@using AlbumDatabaseServer.Components
+@inject AlbumService AlbumService
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<PageTitle>Albums released by @artistName • Waveformd</PageTitle>
+
+<div class="container">
+    <div class="artist-info">
+        <p class="header-text">Albums released by</p>
+        <h2 class="name-text">@artistName</h2>
+        <hr class="divider" />
+        <div class="component-container">
+            <div class="sort-component">
+                <SortComponent listType="artist" 
+                    allAlbums="@allArtistAlbums"
+                    OnAlbumsChanged="HandleAlbumsChanged" />
+            </div>
+        </div>
+        <hr class="divider" />
+        <div class="album-container">
+            @if (artistAlbums != null)
+            {
+                @if (artistAlbums.Any())
+                {
+                    foreach (var album in artistAlbums)
+                    {
+                        <AlbumComponent album="album" displayInfo="false" />
+                    }
+                }
+                else
+                {
+                    <div class="no-albums-container">
+                        <p class="no-albums-text">There are no albums with the selected sort parameters :(</p>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+    <div class="side-profile">
+        @if (artist != null)
+        {
+            if (artist.ArtistImage != null)
+            {
+                <img src="@artist.ArtistImage" class="artist-image" />
+            }
+            <div class="description-container">
+                <p class="artist-description @(descriptionExpanded ? "expanded" : "")">@artistDescription</p>
+                <p class="expand-button" @onclick="() => descriptionExpanded = !descriptionExpanded">
+                    @(descriptionExpanded ? "less" : "more")
+                </p>
+            </div>
+            if (currentUsername != null)
+            {
+                @if (artistAlbums != null)
+                {
+                    <div class="listened-component">
+                        <AmountListened HeardCount="@heardCount" TotalCount="@artistAlbums.Count" />
+                    </div>
+                }
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string artistName { get; set; }
+    private List<Album> allArtistAlbums;
+    private List<Album> artistAlbums;
+    private int artistId;
+    private Artist artist = new Artist();
+    private string artistDescription;
+    private bool descriptionExpanded = false;
+    private int heardCount;
+    private string currentUsername;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        currentUsername = user.Identity.Name;
+        var decodedArtistName = Uri.UnescapeDataString(artistName);
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("artistId", out var id))
+        {
+            if (int.TryParse(id, out var parsedId))
+            {
+                artistId = parsedId;
+            }
+        }
+        artist = await AlbumService.GetArtistAsync(artistId);
+        allArtistAlbums = await AlbumService.GetAlbumsByArtistAsync(artistId);
+        artistAlbums = new List<Album>(allArtistAlbums);
+        if (artist.ArtistDescription == "") artistDescription = $"{artistName} has released {artistAlbums.Count} albums.";
+        else artistDescription = artist.ArtistDescription;
+        if (currentUsername != null)
+        {
+            var currentUserListenedAlbums = await UserService.GetListenedAlbumsAsync(currentUsername);
+            heardCount = artistAlbums.Count(album => currentUserListenedAlbums.Any(listenedAlbum => listenedAlbum.AlbumId == album.AlbumId));
+        }
+    }
+    private void HandleAlbumsChanged(List<Album> newAlbums)
+    {
+        artistAlbums = newAlbums;
+    }
+}

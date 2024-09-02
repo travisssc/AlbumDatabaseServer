@@ -23,12 +23,21 @@
         }
         else
         {
-            @foreach (var album in GetPaginatedAlbums())
+            if (queuedAlbums.Any())
             {
-                <div class="album-card">
-                    <div class="album-component">
-                        <AlbumComponent album=@album displayInfo="false" />
+                foreach (var album in GetPaginatedAlbums())
+                {
+                    <div class="album-card">
+                        <div class="album-component">
+                            <AlbumComponent album=@album displayInfo="false" />
+                        </div>
                     </div>
+                }
+            }
+            else
+            {
+                <div class="no-albums-container">
+                    <p class="no-albums-text">There are no albums with the selected sort parameters :(</p>
                 </div>
             }
         }

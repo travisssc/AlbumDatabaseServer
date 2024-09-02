@@ -1,0 +1,21 @@
+﻿.container {
+    width: 1136px;
+    background: #121212;
+    margin: 8px auto;
+    padding: 16px;
+    border-radius: 10px;
+}
+
+.divider {
+    border: 1px solid #212121;
+    margin: 5px 0px 16px 0px;
+}
+
+.queue-container {
+    border-radius: 8px;
+    display: flex;
+    border: 2px solid #212121;
+    padding: 64px;
+    justify-content: center;
+    align-items: center;
+}

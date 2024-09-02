@@ -82,4 +82,24 @@ public class AlbumService
 			.ToListAsync();
 		return results;
 	}
+	public async Task<List<Album>> GetAlbumsByArtistAsync(int artistId)
+	{
+		using var context = _dbFactory.CreateDbContext();
+		var albums = await context.Albums
+			.Where(a => a.Artist.ArtistId == artistId)
+			.Include(a => a.Artist)
+			.Include(a => a.AlbumGenres)
+			.ThenInclude(ag => ag.Genre)
+			.Include(a => a.Songs)
+			.ToListAsync();
+		return albums;
+	}
+	public async Task<Artist> GetArtistAsync(int artistId)
+	{
+		using var context = _dbFactory.CreateDbContext();
+		var artist = await context.Artists
+			.Where(a => a.ArtistId == artistId)
+			.SingleOrDefaultAsync();
+		return artist;
+	}
 }

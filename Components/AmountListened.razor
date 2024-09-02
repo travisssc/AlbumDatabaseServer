@@ -1,0 +1,24 @@
+﻿@using AlbumDatabaseServer.Data
+@inject AlbumService AlbumService
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="listened-container">
+    <div class="listened-text">
+        <p>You've listened to @HeardCount of @TotalCount albums</p>
+    </div>
+    <div class="progress-bar-container">
+        <div class="progress-bar" style="width: @(GetProgressPercentage())%;"></div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int HeardCount { get; set; }
+    [Parameter] public int TotalCount { get; set; }
+
+    private double GetProgressPercentage()
+    {
+        if (TotalCount == 0) return 0; // Avoid division by zero
+        return (double)HeardCount / TotalCount * 100;
+    }
+}

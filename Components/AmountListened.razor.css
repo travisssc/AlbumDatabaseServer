@@ -1,0 +1,31 @@
+﻿.listened-container {
+    display: flex;
+    flex-direction: column;
+    background: #121212;
+    height: 64px;
+    width: 100%;
+    padding: 16px;
+    align-content: center;
+    align-items: center;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.listened-text {
+    padding-bottom: 8px;
+}
+
+.progress-bar-container {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    border-radius: 10px;
+    background-color: #535353;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #3bade1; /* Green color */
+    border-radius: 10px;
+    transition: width 0.3s ease; /* Smooth transition */
+}

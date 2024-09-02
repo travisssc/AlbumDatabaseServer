@@ -19,27 +19,36 @@
 	<div class="album-container">
 		@if (listenedAlbums == null)
 		{
-			<p>No listens yet!</p>
-		}
-		else
-		{
-			@foreach (var album in GetPaginatedAlbums())
-			{
-                <div class="album-cover">
-                    <img src="@album.AlbumCover" class="album-cover-img" @onclick="() => HandleNavigation(album)" />
-                    <div class="star-container">
-                        @if (albumRatings.TryGetValue(album.AlbumId, out int rating))
-                        {
-                                @for (int i = 0; i < rating; i++)
+            <p>No listens yet!</p>
+        }
+        else
+        {
+            if (listenedAlbums.Any())
+            {
+                foreach (var album in GetPaginatedAlbums())
+                {
+                    <div class="album-cover">
+                        <img src="@album.AlbumCover" class="album-cover-img" @onclick="() => HandleNavigation(album)" />
+                        <div class="star-container">
+                            @if (albumRatings.TryGetValue(album.AlbumId, out int rating))
+                            {
+                                for (int i = 0; i < rating; i++)
                                 {
                                     <span class="material-symbols-outlined star">
                                         star
                                     </span>
                                 }
-                        }
+                            }
+                        </div>
                     </div>
+                }
+            }
+            else
+            {
+                <div class="no-albums-container">
+                    <p class="no-albums-text">There are no albums with the selected sort parameters :(</p>
                 </div>
-			}
+            }
 		}
 	</div>
 	<div class="pagination-controls">

@@ -13,6 +13,5 @@ namespace AlbumDatabaseServer.Data
         public string ArtistDescription { get; set; } = string.Empty;
         public string ArtistImage {  get; set; } = string.Empty;
         public int[] Members { get; set; } = new int[0];
-
     }
 }

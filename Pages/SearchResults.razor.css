@@ -52,7 +52,7 @@
     padding: 0px;
 }
 .link-album:hover, .link-artist:hover {
-    color: #b3b3b3;
+    color: #3bade1;
     cursor: pointer;
 }
 .rating-container {

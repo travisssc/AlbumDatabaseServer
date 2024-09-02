@@ -34,14 +34,13 @@ else
         <hr style="border: 1px solid #212121; margin-bottom: 16px; margin-top: 5px;"/>
         @foreach (var result in searchResults)
         {
-            <div class="result" @onclick="()=> HandleNavigation(result)">
+            <div class="result" @onclick="()=> HandleNavigation(result, 0)">
                 <button class="view-album">
-                    <MudImage Src="@result.AlbumCover" Alt="@result.Name" Width="200" Class="rounded-lg"
-                              @onclick="()=> HandleNavigation(result)"/>
+                    <MudImage Src="@result.AlbumCover" Alt="@result.Name" Width="200" Class="rounded-lg" />
                 </button>
                 <div class="result-info">
                     <div class="name-date">
-                        <a class="link-album" @onclick="() => HandleNavigation(result)">
+                        <a class="link-album">
                             <h1 class="result-name">@result.Name</h1>
                         </a>
                         <a class="link-year">
@@ -49,7 +48,8 @@ else
                         </a>
                     </div>
                     <a class="link-artist">
-                        <h3 class="result-artist">@result.Artist.ArtistName</h3>
+                        <h3 class="result-artist" @onclick="() => HandleNavigation(result, 1)"
+                            @onclick:stopPropagation="true">@result.Artist.ArtistName</h3>
                     </a>
                     <MudChipSet Class="pt-16" Style="white-space: nowrap;">
                         @foreach (var albumGenre in result.AlbumGenres)
@@ -101,10 +101,19 @@ else
                 .ToList();
         }
     }
-    private void HandleNavigation(Album album)
+    private void HandleNavigation(Album album, int type)
     {
-        var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
-        var encodedAlbumName = Uri.EscapeDataString(album.Name);
-        NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
+        if (type == 0)
+        {
+            var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
+            var encodedAlbumName = Uri.EscapeDataString(album.Name);
+            NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
+        }
+        else
+        {
+            var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
+            NavigationManager.NavigateTo($"/artists/{encodedArtistName}?artistId={album.ArtistId}");
+        }
+
     }
 }

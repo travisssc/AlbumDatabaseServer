@@ -41,14 +41,12 @@
                 }
             </div>
         </div>
-        <div class="listened-container">
-            <div class="listened-text">
-                <p>You've listened to @heardCount of @albums.Count albums in this list</p>
+        if (currentUsername != null)
+        {
+            <div class="listened-component">
+                <AmountListened HeardCount="@heardCount" TotalCount="@albums.Count" />
             </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" style="width: @(GetProgressPercentage())%;"></div>
-            </div>
-        </div>
+        }
     }
 </div>
 
@@ -95,8 +93,8 @@
         {
             currentUserListenedAlbums = await UserService.GetListenedAlbumsAsync(currentUsername);
             var albumCount = albumList.ListAlbums
-            .GroupBy(la => la.AlbumId)
-            .ToDictionary(g => g.Key, g => g.Count());
+                .GroupBy(la => la.AlbumId)
+                .ToDictionary(g => g.Key, g => g.Count());
 
             // Calculate heardCount
             heardCount = currentUserListenedAlbums

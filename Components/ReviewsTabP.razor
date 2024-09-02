@@ -25,10 +25,20 @@
 		}
 		else
 		{
-			@foreach (var album in GetPaginatedAlbums())
+			if (reviewedAlbums.Any())
 			{
-				<ReviewCard album="album" userName="@userName"/>
+				foreach (var album in GetPaginatedAlbums())
+				{
+					<ReviewCard album="album" userName="@userName" />
+				}
 			}
+			else
+			{
+				<div class="no-albums-container">
+                    <p class="no-albums-text">There are no reviews with the selected sort parameters :(</p>
+                </div>
+			}
+			
 		}
 	</div>
 	<div class="pagination-controls">

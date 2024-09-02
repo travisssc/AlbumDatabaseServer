@@ -1,0 +1,93 @@
+﻿.container {
+    display: flex;
+    background: #121212;
+    width: 1280px;
+    margin: 24px auto;
+    margin-top: 8px;
+    padding: 64px;
+    justify-content: space-between;
+    border-radius: 10px;
+}
+.artist-info {
+    width: 816px;
+}
+.header-text {
+    color: #b3b3b3;
+}
+.name-text {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.divider {
+    border: 1px solid #212121;
+    margin: 0px;
+}
+.component-container {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    justify-content: flex-end;
+}
+.sort-component {
+    transform: scale(0.75);
+    margin: 0px -64px 0px 0px;
+    padding: 0;
+    height: 42px;
+    width: max-content;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+    z-index: 3;
+}
+.album-container {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+.side-profile {
+    width: 256px;
+}
+.artist-image {
+    width: 100%;
+    height: 384px;
+    object-fit: cover;
+    border-radius: 4px;
+    outline: 1px solid #b3b3b3;
+}
+.artist-description {
+    margin-top: 4px;
+    color: #b3b3b3;
+    max-height: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 10; /* Number of lines to show */
+    -webkit-box-orient: vertical;
+}
+.artist-description.expanded {
+    height: auto;
+    max-height: none;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+}
+.expand-button {
+    width: fit-content;
+    cursor: pointer;
+}
+.expand-button:hover {
+    color: #3bade1;
+}
+.listened-component {
+    margin-top: 8px;
+}
+.no-albums-container {
+    width: 100%;
+    padding: 64px;
+    align-content: center;
+    align-items: center;
+}
+.no-albums-text {
+    text-align: center;
+}
