@@ -59,7 +59,7 @@
                 @if (artistAlbums != null)
                 {
                     <div class="listened-component">
-                        <AmountListened HeardCount="@heardCount" TotalCount="@artistAlbums.Count" />
+                        <AmountListened HeardCount="@heardCount" TotalCount="@totalCount" />
                     </div>
                 }
             }
@@ -72,11 +72,13 @@
     public string artistName { get; set; }
     private List<Album> allArtistAlbums;
     private List<Album> artistAlbums;
+    private List<ListenedAlbums> currentUserListenedAlbums;
     private int artistId;
     private Artist artist = new Artist();
     private string artistDescription;
     private bool descriptionExpanded = false;
     private int heardCount;
+    private int totalCount;
     private string currentUsername;
 
     protected override async Task OnInitializedAsync()
@@ -97,16 +99,20 @@
         artist = await AlbumService.GetArtistAsync(artistId);
         allArtistAlbums = await AlbumService.GetAlbumsByArtistAsync(artistId);
         artistAlbums = new List<Album>(allArtistAlbums);
+        totalCount = artistAlbums.Count;
         if (artist.ArtistDescription == "") artistDescription = $"{artistName} has released {artistAlbums.Count} albums.";
         else artistDescription = artist.ArtistDescription;
         if (currentUsername != null)
         {
-            var currentUserListenedAlbums = await UserService.GetListenedAlbumsAsync(currentUsername);
+            currentUserListenedAlbums = await UserService.GetListenedAlbumsAsync(currentUsername);
             heardCount = artistAlbums.Count(album => currentUserListenedAlbums.Any(listenedAlbum => listenedAlbum.AlbumId == album.AlbumId));
         }
+
     }
     private void HandleAlbumsChanged(List<Album> newAlbums)
     {
         artistAlbums = newAlbums;
+        totalCount = artistAlbums.Count;
+        heardCount = artistAlbums.Count(album => currentUserListenedAlbums.Any(listenedAlbum => listenedAlbum.AlbumId == album.AlbumId));
     }
 }
