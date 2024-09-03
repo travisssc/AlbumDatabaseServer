@@ -1,0 +1,71 @@
+﻿.search-container {
+}
+.search-bar {
+    display: flex;
+    align-items: center;
+    align-content: center;
+}
+.search-button {
+    padding: 8px 16px 8px 16px;
+    background: #3bade1;
+    color: white;
+    border-radius: 8px;
+    margin-left: 8px;
+    font-size: 1.1rem;
+}
+.search-results {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+.search-result {
+    width: 104px;
+}
+.search-result-image {
+    max-height: 104px;
+    max-width: 104px;
+    border-radius: 4px;
+    outline: 3px transparent solid;
+    transition: outline-color 0.1s ease;
+}
+.search-result-image:hover {
+    cursor: pointer;
+    outline-color: white;
+}
+.search-result-image.selected {
+    outline: 3px #3bade1 solid;
+}
+.search-result-title {
+    font-weight: bold;
+}
+.search-result-year {
+    color: #b3b3b3;
+}
+.cancel-button {
+    padding: 8px 16px 8px 16px;
+    background: #212121;
+    color: white;
+    border-radius: 8px;
+    margin-left: 8px;
+    font-size: 1.1rem;
+}
+.submit-button {
+    padding: 8px 16px 8px 16px;
+    background: #3bade1;
+    color: white;
+    border-radius: 8px;
+    margin-left: 8px;
+    font-size: 1.1rem;
+}
+.error-message {
+    margin: 8px;
+    color: #D43B3B;
+}
+.success-text {
+    color: #3EC945;
+}
+.submit-message {
+    color: #3bade1;
+}

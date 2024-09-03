@@ -102,4 +102,61 @@ public class AlbumService
 			.SingleOrDefaultAsync();
 		return artist;
 	}
+	public async Task<Artist> GetArtistByNameAsync(string artistName)
+	{
+		using var context = _dbFactory.CreateDbContext();
+		var artist = await context.Artists
+			.Where(a => a.ArtistName == artistName)
+			.SingleOrDefaultAsync();
+		return artist;
+	}
+	public async Task<bool> ArtistNameExistsAsync(string artistName) // returns true if artist name exists in db, else false
+	{
+		using var context = _dbFactory.CreateDbContext();
+		var artist = await context.Artists
+			.Where(a => a.ArtistName == artistName)
+			.SingleOrDefaultAsync();
+		if (artist == null)
+		{
+			return false;
+		}
+		return true;
+	}
+	public async Task<bool> GenreNameExistsAsync(string genreName) // returns true if genre name exists in db, else false
+	{
+		using var context = _dbFactory.CreateDbContext();
+		var genre = await context.Genres
+			.Where(g => g.Name == genreName)
+			.SingleOrDefaultAsync();
+		if (genre == null)
+		{
+			return false;
+		}
+		return true;
+	}
+	public async Task<int> GetGenreIdByNameAsync(string genreName)
+	{
+		using var context = _dbFactory.CreateDbContext();
+		var genre = await context.Genres
+			.Where(g => g.Name == genreName)
+			.SingleOrDefaultAsync();
+		if (genre == null)
+		{
+			return -1;
+		}
+		return genre.GenreId;
+	}
+	public async Task<bool> AlbumExistsAsync(string albumName, int artistId)
+	{
+		using var context = _dbFactory.CreateDbContext();
+		var album = await context.Albums
+			.Include(a => a.Artist)
+			.Where(a => a.Name == albumName && a.Artist.ArtistId == artistId)
+			.SingleOrDefaultAsync();
+        if (album == null)
+        {
+			return false;
+        }
+		return true;
+    }
 }

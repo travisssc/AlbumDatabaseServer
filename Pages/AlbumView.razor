@@ -3,6 +3,7 @@
 @inject AlbumService AlbumService
 @inject UserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 @inherits MainLayout
 @inject ISnackbar Snackbar
 
@@ -23,7 +24,7 @@ else
                         <h1>@album.Name</h1>
                     </div>
                     <div class="artist-genres">
-                        <div class="artist-name">
+                        <div class="artist-name" @onclick="() => HandleNavigation(album)">
                             <h2>@album.Artist.ArtistName</h2>
                         </div>
                         <div class="genres">
@@ -303,6 +304,11 @@ else
 
             await UserService.RemoveReviewAsync(album.AlbumId, userName);
             Snackbar.Add("Review removed successfully!", Severity.Success);
-		}
+        }
+    }
+    private void HandleNavigation(Album album)
+    {
+        var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
+        NavigationManager.NavigateTo($"/artists/{encodedArtistName}?artistId={album.ArtistId}");
     }
 }

@@ -1,82 +1,69 @@
 ﻿@using AlbumDatabaseServer.Data
 @using Microsoft.EntityFrameworkCore
+@using HtmlAgilityPack
+@using System.Web
+@using OpenQA.Selenium
+@using OpenQA.Selenium.Firefox
 @inject IConfiguration _configuration
 @inject IWebHostEnvironment _env
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject AlbumService AlbumService
 @inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inherits MainLayout
 
-<MudDialog Style="background-color: #212121">
+<MudDialog Style="background-color: #121212">
 	<DialogContent>
-		<MudForm @ref="form">
-			<MudTextField
-				Label="Album name" 
-				@bind-Value="_newAlbum" 
-				Variant="Variant.Outlined" 
-				Style="background-color: #121212"
-				Required="true"
-				RequiredError="Album name is required"/>
-			<MudTextField
-				@bind-Value="_newArtist" 
-				Label="Artist name"
-				Variant="Variant.Outlined" 
-				Style="background-color: #121212" 
-				Class="mt-2"
-				Required="true"
-				RequiredError="Artist name is required"/>
-			<MudChipSet Filter="true" 
-				Class="mt-4 mb-0" 
-				MultiSelection="true" 
-				@bind-SelectedChips="selectedGenres">
-				@if (genres != null)
+		<div class="search-container">
+			<div class="search-input">
+				<div class="search-bar">
+					<InputText class="form-control" @bind-Value="_searchQuery" @onkeydown="HandleKeyDown" Placeholder="Search for albums" />
+					<button class="search-button" @onclick="SearchAlbums">Search</button>
+				</div>
+				@if (_searchResults != null && _searchResults.Any())
 				{
-					@foreach (var genre in genres)
-					{
-						var style = $"background: {GetGenreGradient(genre.Name)};";
-						<MudChip Style="@style" 
-							Text="@genre.Name" Value="@genre" />
-					}
+					<div class="search-results">
+                        @foreach (var result in _searchResults)
+                        {
+                            <div class="search-result" @onclick="() => OnSelectAlbum(result)">
+                                <img src="@result.AlbumCoverUrl" class="search-result-image @(selectedResult == result ? "selected" : "")" 
+									@onclick="() => selectedResult = result"/>
+                                <div class="search-result-text">
+                                    <p class="search-result-title">@result.Title</p>
+                                    <p class="search-result-artist">@result.Artist</p>
+                                    <p class="search-result-year">@result.Year</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
 				}
-			</MudChipSet>
-			<MudDatePicker Class="mt-4" Label="Release date" @bind-Date="releaseDate" Editable="true" Placeholder="Select date" Color="Color.Success"/>
-			<MudFileUpload Class="mt-4" 
-				T="IBrowserFile" 
-				@bind-File="uploadedCover" 
-				Accept=".png, .jpg" 
-				MaximumFileCount="1" 
-				Required="true" 
-				RequiredError="Please upload an album cover"
-				FilesChanged="HandleFilesChanged"
-				For="@(() => uploadedCover)">
-				<ButtonTemplate>
-					<MudButton HtmlTag="label"
-						Variant="Variant.Filled"
-						Color="Color.Success"
-						StartIcon="@Icons.Material.Filled.Image"
-						for="@context.Id">
-						Upload cover
-					</MudButton>
-				</ButtonTemplate>
-				<SelectedTemplate>
-					@if (@context != null)
+				<div class="error-messages">
+					@if (!isUserLoggedIn && submitAttempted)
 					{
-						<MudText Class="mt-2">@context.Name</MudText>
+						<p class="error-message">You need to be logged in to submit an album.</p>
 					}
-					else
+					else if (selectedResult == null && submitAttempted)
 					{
-						<MudText Class="mt-2">No File</MudText>
+					<p class="error-message">Please select an album before submitting.</p>
 					}
-				</SelectedTemplate>
-			</MudFileUpload>
-		</MudForm>
+					else if (albumExists && submitAttempted)
+                    {
+						<p class="error-message">This album already exists in the database.</p>
+					}
+					else if (submitAttempted)
+					{
+						<p class="submit-message">Submitting album, please be patient...</p>
+					}
+				</div>
+			</div>
+		</div>
 	</DialogContent>
 	<DialogActions>
 		<div hidden="@HideSuccess">
-			<MudText Color="Color.Success">Submitted album!</MudText>
+			<p class="success-text">Submitted album!</p>
 		</div>
-		<MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
-		<MudButton Variant="Variant.Filled" OnClick="SubmitAlbum">Submit Album</MudButton>
+		<button @onclick="Cancel" class="cancel-button">Cancel</button>
+		<button  @onclick="SubmitAlbum" class="submit-button">Submit Album</button>
 	</DialogActions>
 </MudDialog>
 
@@ -91,26 +78,84 @@
 	DateTime? releaseDate = DateTime.Today;
 	private bool HideSuccess { get; set; } = true;
 	private IBrowserFile uploadedCover;
+	private string _searchQuery;
+	private List<SearchResult> _searchResults = new List<SearchResult>();
+	private SearchResult selectedResult;
+	private bool isUserLoggedIn;
+	private bool submitAttempted = false;
+	private bool albumExists = false;
 
 	protected override async Task OnInitializedAsync()
 	{
 		using var context = DbFactory.CreateDbContext();
 		genres = await context.Genres.ToListAsync();  // Fetch all genres into a separate liste
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		isUserLoggedIn = user.Identity.IsAuthenticated;
 	}
-
-	// public class GenreValidationAttribute : ValidationAttribute
-	// {
-	// 	protected override ValidationResult IsValid(object value, ValidationContext validationContext)
-	// 	{
-	// 		var chips = value as MudChip[];
-	// 		if (chips == null || !chips.Any())
-	// 		{
-	// 			return new ValidationResult("Please select at least one genre");
-	// 		}
-	// 		return ValidationResult.Success;
-	// 	}
-
-	// }
+	public async Task HandleKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key == "Enter") await SearchAlbums();
+	}
+	public async Task SearchAlbums()
+	{
+		if (!string.IsNullOrEmpty(_searchQuery))
+		{
+			string html = await SearchAlbumsAsync(_searchQuery);
+			_searchResults = ParseSearchResults(html);
+			StateHasChanged();
+		}
+		else
+		{
+			_searchResults.Clear();
+		}
+	}
+	private void OnSelectAlbum(SearchResult selectedAlbum)
+	{
+	}
+	public async Task<string> SearchAlbumsAsync (string query)
+	{
+		var url = $"https://www.allmusic.com/search/all/{query}";
+		using var httpClient = new HttpClient();
+		var response = await httpClient.GetStringAsync(url);
+		return response;
+	}
+	public List<SearchResult> ParseSearchResults(string html)
+	{
+		var doc = new HtmlDocument();
+		doc.LoadHtml(html);
+		var results = new List<SearchResult>();
+		var searchResults = doc.DocumentNode.SelectNodes("//div[contains(@class, 'album')]");
+		if (searchResults == null) return results;
+		foreach (var result in searchResults)
+		{
+			var infoNode = result.SelectSingleNode(".//div[@class='info']");
+			var titleNode = infoNode?.SelectSingleNode(".//div[@class='title']/a");
+			var artistNode = infoNode?.SelectSingleNode(".//div[@class='artist']/a");
+			var yearNode = infoNode?.SelectSingleNode(".//div[@class='year']");
+			var coverNode = result.SelectSingleNode(".//div[@class='cover']/a/img");
+			string title = titleNode?.InnerText;
+			string detailPageUrl = titleNode?.GetAttributeValue("href", string.Empty);
+			string artist = artistNode?.InnerText;
+			string year = yearNode?.InnerText;
+			string coverUrl = coverNode.GetAttributeValue("data-src", string.Empty);
+			if (title != null && detailPageUrl != null && artist != null && year != null && coverUrl != null)
+			{
+				title = HttpUtility.HtmlDecode(title);
+				artist = HttpUtility.HtmlDecode(artist);
+				var searchResult = new SearchResult
+					{
+						Title = title,
+						Artist = artist,
+						Year = year,
+						AlbumCoverUrl = coverUrl,
+						DetailPageUrl = detailPageUrl
+					};
+				results.Add(searchResult);
+			}
+		}
+		return results;
+	}
 
 	private void HandleFilesChanged(IBrowserFile file)
 	{
@@ -128,12 +173,138 @@
 
 	async Task SubmitAlbum()
 	{
-		form.Validate();
-		bool formIsValid = form.IsValid;
-		if (formIsValid && uploadedCover != null && releaseDate.HasValue)
+		submitAttempted = true;
+		if (selectedResult == null)
 		{
+			return;	
+		}
+		else if (!isUserLoggedIn)
+		{
+			return;
+		}
+		else
+		{
+			using var context = DbFactory.CreateDbContext();
+			var httpClient = new HttpClient();
+			var html = await httpClient.GetStringAsync(selectedResult.DetailPageUrl);
+			var doc = new HtmlDocument();
+			doc.LoadHtml(html);
+			var detailNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumHeader']");
+			if (detailNode == null) return;
+			var headlineNode = detailNode.SelectSingleNode(".//div[@id='albumHeadline']");
+			if (headlineNode == null) return;
+			var titleNode = headlineNode.SelectSingleNode(".//h1[@id='albumTitle']");
+			string title = titleNode.InnerText;
+			var artistNodes = headlineNode.SelectNodes(".//h2[@id='albumArtists']/a");
+			List<string> artists = new List<string>();
+			foreach (var artist in artistNodes)
+			{
+				artists.Add(artist.InnerText);
+			}
+			var basicInfoNode = detailNode.SelectSingleNode(".//div[@id='basicInfoMeta']");
+			var releaseDateNode = basicInfoNode.SelectSingleNode(".//div[@class='release-date']/span");
+			DateTime releaseDate = DateTime.Parse(releaseDateNode.InnerText).ToUniversalTime();
+			var genreNodes = basicInfoNode.SelectNodes(".//div[@class='genre']/div/a");
+			List<string> genres = new List<string>();
+			foreach (var genre in genreNodes)
+			{
+				if (genre.InnerText == "Pop/Rock")
+				{
+					genres.Add("Pop");
+					genres.Add("Rock");
+				}
+				else
+				{
+					genres.Add(genre.InnerText);
+				}
+			}
+			var albumCoverNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumCover']/img");
+			string coverUrl = albumCoverNode.GetAttributeValue("src", string.Empty);
+			List<string> artistUrls = new List<string>();
+			foreach (var artist in artistNodes)
+			{
+				string artistDetailNode = artist.GetAttributeValue("href", string.Empty);
+				artistUrls.Add(artistDetailNode);
+			}
+			List<int> artistIds = new List<int>();
+			foreach (var artist in artists)
+			{
+				if (!await AlbumService.ArtistNameExistsAsync(artist))
+				{
+					Artist newArtist = new Artist
+                    {
+                        ArtistName = artist
+					};
+					context.Artists.Add(newArtist);
+					await context.SaveChangesAsync();
+					artistIds.Add(newArtist.ArtistId);
+				}
+				else
+				{
+					var albumArtist = await AlbumService.GetArtistByNameAsync(artist);
+					artistIds.Add(albumArtist.ArtistId);
+				}
+			}
+			
+			albumExists = await AlbumService.AlbumExistsAsync(title, artistIds[0]);
+			if (albumExists)
+			{
+				HideSuccess = true;
+				return;
+			}
+			var newAlbum = new Album
+				{
+					Name = title,
+					ReleaseDate = releaseDate,
+					AlbumCover = coverUrl,
+					ArtistId = artistIds[0],
+				};
+			context.Albums.Add(newAlbum);
+			await context.SaveChangesAsync();
+			html = await httpClient.GetStringAsync($"https://www.last.fm/music/{artists[0]}/{title}");
+			var doc2 = new HtmlDocument();
+			doc2.LoadHtml(html);
+			var trackNodes = doc2.DocumentNode.SelectNodes("//tr[contains(@class, 'chartlist-row')]");
+			foreach (var track in trackNodes)
+			{
+				var trackNumNode = track.SelectSingleNode(".//td[@class='chartlist-index']");
+				int trackNum = int.Parse(trackNumNode.InnerText);
+				var trackTitleNode = track.SelectSingleNode(".//td[@class='chartlist-name']/a");
+				string trackTitle = trackTitleNode.InnerText;
+				context.Add(new Song 
+					{ 
+						SongPosition = trackNum, 
+						SongName = trackTitle, 
+						AlbumId = newAlbum.AlbumId, 
+						ArtistId = artistIds[0] 
+					});
+			}
 			HideSuccess = false;
-			var releaseDateUtc = releaseDate.Value.ToUniversalTime();
+			foreach (var genre in genres)
+            {
+                if (!await AlbumService.GenreNameExistsAsync(genre))
+                {
+                    Genre newGenre = new Genre
+                    {
+                        Name = genre
+                    };
+                    context.Genres.Add(newGenre);
+                    await context.SaveChangesAsync();
+                }
+                var genreId = await AlbumService.GetGenreIdByNameAsync(genre);
+                context.AlbumGenres.Add(new AlbumGenre
+                {
+                    AlbumId = newAlbum.AlbumId,
+                    GenreId = genreId
+                });
+                await context.SaveChangesAsync();
+            }
+
+			await context.SaveChangesAsync();
+			AlbumService.NotifyStateChanged();
+			await Task.Delay(1000);
+			MudDialog.Close(DialogResult.Ok(true));
+			/*var releaseDateUtc = releaseDate.Value.ToUniversalTime();
 			using var context = DbFactory.CreateDbContext();
 			var artist = await context.Artists.FirstOrDefaultAsync(a => a.ArtistName.ToLower() == _newArtist.ToLower());
 			if (artist == null)
@@ -144,12 +315,12 @@
 			}
 			var filePath = await SaveImageToServer(uploadedCover);
 			var newAlbum = new Album
-			{
-				Name = _newAlbum,
-				ArtistId = artist.ArtistId,
-				ReleaseDate = releaseDateUtc,
-				AlbumCover  = filePath
-			};
+				{
+					Name = _newAlbum,
+					ArtistId = artist.ArtistId,
+					ReleaseDate = releaseDateUtc,
+					AlbumCover = filePath
+				};
 			await context.Albums.AddAsync(newAlbum);
 			await context.SaveChangesAsync();
 			foreach (var genre in selectedGenres)
@@ -159,7 +330,7 @@
 			await context.SaveChangesAsync();
 			AlbumService.NotifyStateChanged();
 			await Task.Delay(1000);
-			MudDialog.Close(DialogResult.Ok(true));
+			MudDialog.Close(DialogResult.Ok(true));*/
 		}
 	}
 

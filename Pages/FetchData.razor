@@ -189,7 +189,7 @@ else
 				CloseOnEscapeKey = true
 			};
 		var parameters = new DialogParameters();
-		var dialog = DialogService.Show<NewAlbumDialog>("Submit new album", parameters, options);
+		var dialog = DialogService.Show<NewAlbumDialog>("Submit New Album", parameters, options);
 		dialog.Result.ContinueWith(async task =>
 		{
 			if (task.Result.Canceled) return;

@@ -12,10 +12,10 @@
 	<div class="review-content">
 		<div class="album-info">
 			<div class="album-name-year">
-				<h2 class="album-name" @onclick="() => HandleNavigation(album)">@album.Name</h2>
+				<h2 class="album-name" @onclick="() => HandleNavigation(album, 0)">@album.Name</h2>
 				<h3 class="album-year">@album.ReleaseDate.ToString("yyyy")</h3>
 			</div>
-			<h3 class="album-artist">@album.Artist.ArtistName</h3>
+			<h3 class="album-artist" @onclick="() => HandleNavigation(album, 1)">@album.Artist.ArtistName</h3>
 			<div class="user-info-container">
 				<div class="star-container">
 					@if (albumRating != null)
@@ -64,11 +64,20 @@
 			reviewText = review.ReviewText;
 		}
 	}
-	private void HandleNavigation(Album album)
+	private void HandleNavigation(Album album, int type)
 	{
-		var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
-		var encodedAlbumName = Uri.EscapeDataString(album.Name);
-		NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
+		if (type == 0)
+		{
+			var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
+			var encodedAlbumName = Uri.EscapeDataString(album.Name);
+			NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
+		}
+		else
+		{
+			var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
+			NavigationManager.NavigateTo($"/artists/{encodedArtistName}?artistId={album.ArtistId}");
+		}
+
 	}
 
 }

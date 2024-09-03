@@ -23,6 +23,10 @@
     justify-content: flex-start;
     max-height: fit-content;
 }
+.artist-name:hover {
+    cursor: pointer;
+    color: #3bade1;
+}
 .artist-genres {
     display: flex;
     align-items: center;
