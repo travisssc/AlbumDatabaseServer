@@ -7,9 +7,17 @@
     padding: 64px;
     display: flex;
 }
+.side-panel {
+    display: flex;
+    flex-direction: column;
+}
+.divider {
+    border: 1px solid #212121;
+    margin-top: 8px;
+}
 .album-cover {
-    width: 30vw;
-    height: auto;
+    max-width: 400px;
+    max-height: 400px;
     border-radius: 8px;
     align-self: flex-start;
 }
@@ -139,12 +147,28 @@
 }
 .save-area {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+}
+.error-text {
+    color: #d43b3b;
+    width: 188px;
 }
 .save-review-button {
     padding: 6px 10px 6px 10px;
+    height: 32px;
     margin: 4px;
     background-color: #3BADE1;
     color: #121212;
     border-radius: 10px;
+}
+.no-review-container {
+    display: flex;
+    height: 107px;
+    width: 100%;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+}
+.no-review-text {
+    text-align: center;
 }

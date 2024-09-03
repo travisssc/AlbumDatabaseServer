@@ -1,5 +1,6 @@
 ﻿@page "/albums/{artistName}/{albumName}"
 @using AlbumDatabaseServer.Data
+@using AlbumDatabaseServer.Components
 @inject AlbumService AlbumService
 @inject UserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -18,7 +19,23 @@ else
     <MudContainer>
         <div class="album-card">
             <div class="card-content">
-                <img src="@album.AlbumCover" alt="@album.Name" class="album-cover" />
+                <div class="side-panel">
+                    <img src="@album.AlbumCover" alt="@album.Name" class="album-cover" />
+                    @if (latestReviewUserName != null)
+                    {
+                        <hr class="divider"/>
+                        <ReviewCard album="@album" width="album-view" userName="@latestReviewUserName"/>
+                        <hr class="divider"/>
+                    }
+                    else if (latestReviewUserName == null)
+                    {
+                        <hr class="divider" />
+                        <div class="no-review-container">
+                            <p class="no-review-text">Be the first to write a review for this album!</p>
+                        </div>
+                        <hr class="divider"/>
+                    }
+                </div>
                 <div class="album-text-info">
                     <div class="album-name">
                         <h1>@album.Name</h1>
@@ -87,8 +104,9 @@ else
                                     <MudRating @bind-SelectedValue="currentRating" Size="Size.Large" Color="Color.Success" />
                                 </div>
                                 <textarea class="review-box" type="text" @bind="_reviewText"
-                                          placeholder="Add a review..." />
+                                          placeholder="Add a review..."/>
                                 <div class="save-area">
+                                    <p class="error-text">@errorText</p>
                                     <button class="save-review-button" @onclick="SubmitReview">Save</button>
                                 </div>
                             </div>
@@ -109,6 +127,7 @@ else
     private bool isListened = false;
     private bool isFavorited = false;
     private bool isQueued = false;
+    private string latestReviewUserName;
     private string userName;
     private string hoverListen;
     private string hoverFavorite;
@@ -119,6 +138,7 @@ else
     private decimal averageRating = 0;
     private int ratingCount = 0;
     private bool isInitialized = false;
+    private string errorText = "";
     private int _currentRating = 0;
     private int currentRating
     {
@@ -145,6 +165,8 @@ else
         ratingCount = AlbumService.GetRatingCount(album.AlbumId);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
+        var latestReview = await UserService.GetLatestReviewAsync(album.AlbumId);
+        if (latestReview != null) latestReviewUserName = latestReview.UserName;
         if (user.Identity.IsAuthenticated)
         {
             userName = user.Identity.Name;
@@ -286,8 +308,18 @@ else
     }
     private async Task SubmitReview()
     {
-        if (!string.IsNullOrEmpty(_reviewText) && !string.IsNullOrEmpty(userName))
+        int reviewLength = _reviewText.Length;
+        if (string.IsNullOrEmpty(userName))
         {
+            errorText += "Please make an account to submit your review!";
+        }
+        else if (reviewLength > 5000)
+        {
+            errorText = $"Sorry, reviews must be under 5000 characters! Your count: {reviewLength}";
+        }
+        else if (!string.IsNullOrEmpty(_reviewText) && !string.IsNullOrEmpty(userName))
+        {
+            errorText = "";
             await UserService.SubmitReviewAsync(album.AlbumId, userName, _reviewText);
             Snackbar.Add("Review saved successfully!", Severity.Success);
             if (isQueued)
@@ -301,7 +333,7 @@ else
         }
         else if (string.IsNullOrEmpty(_reviewText) && !string.IsNullOrEmpty(userName))
         {
-
+            errorText = "";
             await UserService.RemoveReviewAsync(album.AlbumId, userName);
             Snackbar.Add("Review removed successfully!", Severity.Success);
         }

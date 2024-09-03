@@ -5,18 +5,29 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<div class="review-container @(width == "profile" ? "profile" : "")">
-	<div class="album-cover">
+<div class="review-container @(width  != string.Empty ? width : "")">
+	<div class="album-cover" hidden="@(width == "album-view")">
 		<AlbumComponent album="@album" displayInfo="false" />
 	</div>
 	<div class="review-content">
+		@if (userName != null && width == "album-view")
+		{
+			<img src="@userProfilePicture" class="profile-picture" @onclick="() => HandleNavigation(2)" />
+		}
 		<div class="album-info">
-			<div class="album-name-year">
-				<h2 class="album-name" @onclick="() => HandleNavigation(album, 0)">@album.Name</h2>
+			<div class="album-name-year" hidden="@(width == "album-view")">
+				<h2 class="album-name" @onclick="() => HandleNavigation(0)">@album.Name</h2>
 				<h3 class="album-year">@album.ReleaseDate.ToString("yyyy")</h3>
 			</div>
-			<h3 class="album-artist" @onclick="() => HandleNavigation(album, 1)">@album.Artist.ArtistName</h3>
+			<h3 class="album-artist" hidden="@(width == "album-view")" @onclick="() => HandleNavigation(1)">@album.Artist.ArtistName</h3>
 			<div class="user-info-container">
+				@if (userName != null && width == "album-view")
+				{
+					<div class="picture-username">
+						<p class="username-text">Review by </p>
+						<p class="username" @onclick="() => HandleNavigation(2)"> @userName</p>
+					</div>
+				}
 				<div class="star-container">
 					@if (albumRating != null)
 					{
@@ -34,9 +45,12 @@
 						favorite
 					</span>
 				}
-				<h4 class="listened-text">Listened @dateListened.ToString("dd MMMM yyyy")</h4>
+				@if (width != "album-view")
+				{
+					<h4 class="listened-text">Listened @dateListened.ToString("dd MMMM yyyy")</h4>
+				}
 			</div>
-			<div class="review-text">
+			<div class="review-text @(width  != string.Empty ? width : "")">
 				<h3>@reviewText</h3>
 			</div>
 		</div>
@@ -51,7 +65,8 @@
 	private bool isFavorited;
 	private DateTime dateListened;
 	private string reviewText;
-	 
+	private string userProfilePicture;
+
 	protected override async Task OnParametersSetAsync()
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -63,8 +78,13 @@
 			var review = await UserService.GetReviewAsync(album.AlbumId, userName);
 			reviewText = review.ReviewText;
 		}
+		if (userName != null)
+		{
+			userProfilePicture = await UserService.GetAccountPicAsync(userName);
+			if (userProfilePicture == null) userProfilePicture = "profile-pictures/default-profile.png";
+		}
 	}
-	private void HandleNavigation(Album album, int type)
+	private void HandleNavigation(int type)
 	{
 		if (type == 0)
 		{
@@ -72,10 +92,14 @@
 			var encodedAlbumName = Uri.EscapeDataString(album.Name);
 			NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");
 		}
-		else
+		else if (type == 1)
 		{
 			var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
 			NavigationManager.NavigateTo($"/artists/{encodedArtistName}?artistId={album.ArtistId}");
+		}
+		else if (type == 2)
+		{
+			NavigationManager.NavigateTo($"/{userName}");
 		}
 
 	}

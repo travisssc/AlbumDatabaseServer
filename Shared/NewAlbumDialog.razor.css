@@ -37,6 +37,9 @@
 .search-result-image.selected {
     outline: 3px #3bade1 solid;
 }
+.search-result.not-selected {
+    opacity: 0.25;
+}
 .search-result-title {
     font-weight: bold;
 }
@@ -68,4 +71,5 @@
 }
 .submit-message {
     color: #3bade1;
+    margin-top: 8px;
 }

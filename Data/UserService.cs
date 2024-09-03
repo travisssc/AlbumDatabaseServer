@@ -332,6 +332,15 @@ namespace AlbumDatabaseServer.Data
                 .FirstOrDefaultAsync(l => l.AlbumId == albumId && l.UserName == userName);
             return reviewedAlbum?.DateReviewed ?? DateTime.MinValue;
         }
+        public async Task<AlbumReview> GetLatestReviewAsync(int albumId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            var latestReview = await context.AlbumReviews
+                .Where(r => r.AlbumId == albumId)
+                .OrderByDescending(r => r.DateReviewed)
+                .FirstOrDefaultAsync();
+            return latestReview;
+        }
 
         // LIST FUNCTIONS
         public async Task<List<AlbumLists>> GetListsAsync(string userName)

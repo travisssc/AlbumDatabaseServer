@@ -1,4 +1,28 @@
-﻿.result {
+﻿.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+    align-items: flex-end;
+}
+.add-album {
+    display: flex;
+    align-content: center;
+    align-items: center;
+    gap: 8px;
+}
+.no-result-text {
+    padding-top: 64px;
+}
+.add-button {
+    background: #3BADE1;
+    padding: 8px 16px 8px 16px;
+    border-radius: 100vh;
+    cursor: pointer;
+}
+.add-button:hover {
+    background: #67c5f0;
+}
+.result {
     display: flex;
     padding: 16px;
     border-radius: 10px;
@@ -50,13 +74,16 @@
     color: inherit;
     margin: 0px;
     padding: 0px;
+    display: inline-block;
+    width: fit-content;
 }
+.
 .link-album:hover, .link-artist:hover {
     color: #3bade1;
     cursor: pointer;
 }
 .rating-container {
-    width: 100%;
+    width: fit-content;
     display: flex;
     justify-content: flex-end;
     margin-right: 64px;

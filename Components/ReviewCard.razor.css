@@ -10,12 +10,17 @@
 .review-container.profile {
     width: 848px;
 }
+.review-container.album-view {
+    width: 400px;
+}
+.review-content {
+    display: flex;
+}
 .album-info {
     display: flex;
     flex-direction: column;
     padding-left: 24px;
 }
-
 .album-name-year {
     display: flex;
     align-items: flex-end;
@@ -47,10 +52,32 @@
     color: #3BADE1;
     cursor: pointer;
 }
+.picture-username {
+    display: flex;
+    width: 100%;
+    align-content: center;
+    align-items: center;
+}
+.username-text {
+    color: #b3b3b3;
+}
+.username {
+    cursor: pointer;
+    margin: 8px;
+}
+.profile-picture {
+    margin-top: 16px;
+    height: 48px;
+    width: 48px;
+    border-radius: 100vh;
+    cursor: pointer;
+}
 
 .user-info-container {
     display: flex;
     padding: 8px 4px 8px 0px;
+    align-content: center;
+    align-items: center;
 }
 
 .star-container {
@@ -84,4 +111,7 @@
 .review-text {
     padding-top: 8px;
     color: #b3b3b3;
+}
+.review-text.album-view {
+    padding: 0;
 }

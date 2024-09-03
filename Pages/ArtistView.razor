@@ -98,7 +98,9 @@
         }
         artist = await AlbumService.GetArtistAsync(artistId);
         allArtistAlbums = await AlbumService.GetAlbumsByArtistAsync(artistId);
-        artistAlbums = new List<Album>(allArtistAlbums);
+        artistAlbums = new List<Album>(allArtistAlbums)
+            .OrderByDescending(a => a.ReleaseDate)
+            .ToList();
         totalCount = artistAlbums.Count;
         if (artist.ArtistDescription == "") artistDescription = $"{artistName} has released {artistAlbums.Count} albums.";
         else artistDescription = artist.ArtistDescription;

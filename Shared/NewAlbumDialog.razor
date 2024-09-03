@@ -2,8 +2,6 @@
 @using Microsoft.EntityFrameworkCore
 @using HtmlAgilityPack
 @using System.Web
-@using OpenQA.Selenium
-@using OpenQA.Selenium.Firefox
 @inject IConfiguration _configuration
 @inject IWebHostEnvironment _env
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
@@ -17,7 +15,7 @@
 		<div class="search-container">
 			<div class="search-input">
 				<div class="search-bar">
-					<InputText class="form-control" @bind-Value="_searchQuery" @onkeydown="HandleKeyDown" Placeholder="Search for albums" />
+					<InputText class="form-control" @bind-Value="_searchQuery" @onkeyup="HandleKeyUp" Placeholder="Search for albums" />
 					<button class="search-button" @onclick="SearchAlbums">Search</button>
 				</div>
 				@if (_searchResults != null && _searchResults.Any())
@@ -25,7 +23,7 @@
 					<div class="search-results">
                         @foreach (var result in _searchResults)
                         {
-                            <div class="search-result" @onclick="() => OnSelectAlbum(result)">
+							<div class="search-result @((selectedResult != null && selectedResult != result) ? "not-selected" : "")" @onclick="() => OnSelectAlbum(result)">
                                 <img src="@result.AlbumCoverUrl" class="search-result-image @(selectedResult == result ? "selected" : "")" 
 									@onclick="() => selectedResult = result"/>
                                 <div class="search-result-text">
@@ -93,9 +91,11 @@
 		var user = authState.User;
 		isUserLoggedIn = user.Identity.IsAuthenticated;
 	}
-	public async Task HandleKeyDown(KeyboardEventArgs e)
+	public async Task HandleKeyUp(KeyboardEventArgs e)
 	{
-		if (e.Key == "Enter") await SearchAlbums();
+		if (e.Key == "Enter") {
+			await SearchAlbums();
+		}
 	}
 	public async Task SearchAlbums()
 	{
@@ -182,156 +182,150 @@
 		{
 			return;
 		}
+		using var context = DbFactory.CreateDbContext();
+		var httpClient = new HttpClient();
+		var html = await httpClient.GetStringAsync(selectedResult.DetailPageUrl);
+		var doc = new HtmlDocument();
+		doc.LoadHtml(html);
+		var detailNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumHeader']");
+		if (detailNode == null) return;
+		var headlineNode = detailNode.SelectSingleNode(".//div[@id='albumHeadline']");
+		if (headlineNode == null) return;
+		var titleNode = headlineNode.SelectSingleNode(".//h1[@id='albumTitle']");
+		string title = HttpUtility.HtmlDecode(titleNode.InnerText);
+		var artistNode = headlineNode.SelectSingleNode(".//h2[@id='albumArtists']/a");
+		string artist = HttpUtility.HtmlDecode(artistNode.InnerText);
+		string artistDetailNode = artistNode.GetAttributeValue("href", string.Empty);
+		string artistUrl = artistDetailNode;
+		var basicInfoNode = detailNode.SelectSingleNode(".//div[@id='basicInfoMeta']");
+		var releaseDateNode = basicInfoNode.SelectSingleNode(".//div[@class='release-date']/span");
+		DateTime releaseDate = DateTime.Parse(releaseDateNode.InnerText).ToUniversalTime();
+		var genreNodes = basicInfoNode.SelectNodes(".//div[@class='genre']/div/a");
+		List<string> genres = new List<string>();
+		foreach (var genre in genreNodes)
+		{
+			if (genre.InnerText == "Pop/Rock")
+			{
+				genres.Add("Pop");
+				genres.Add("Rock");
+			}
+			else
+			{
+				genres.Add(HttpUtility.HtmlDecode(genre.InnerText));
+			}
+		}
+		var albumCoverNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumCover']/img");
+		string coverUrl = albumCoverNode.GetAttributeValue("src", string.Empty);
+		int artistId;
+		if (!await AlbumService.ArtistNameExistsAsync(artist))
+		{
+			string artistDescription = "";
+			Artist newArtist = new Artist
+            {
+					ArtistName = HttpUtility.HtmlDecode(artist),
+			};
+			if (artistDescription != "")
+            {
+                newArtist.ArtistDescription = artistDescription;
+            }
+			context.Artists.Add(newArtist);
+			await context.SaveChangesAsync();
+			artistId = newArtist.ArtistId;
+		}
 		else
 		{
-			using var context = DbFactory.CreateDbContext();
-			var httpClient = new HttpClient();
-			var html = await httpClient.GetStringAsync(selectedResult.DetailPageUrl);
-			var doc = new HtmlDocument();
-			doc.LoadHtml(html);
-			var detailNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumHeader']");
-			if (detailNode == null) return;
-			var headlineNode = detailNode.SelectSingleNode(".//div[@id='albumHeadline']");
-			if (headlineNode == null) return;
-			var titleNode = headlineNode.SelectSingleNode(".//h1[@id='albumTitle']");
-			string title = titleNode.InnerText;
-			var artistNodes = headlineNode.SelectNodes(".//h2[@id='albumArtists']/a");
-			List<string> artists = new List<string>();
-			foreach (var artist in artistNodes)
-			{
-				artists.Add(artist.InnerText);
-			}
-			var basicInfoNode = detailNode.SelectSingleNode(".//div[@id='basicInfoMeta']");
-			var releaseDateNode = basicInfoNode.SelectSingleNode(".//div[@class='release-date']/span");
-			DateTime releaseDate = DateTime.Parse(releaseDateNode.InnerText).ToUniversalTime();
-			var genreNodes = basicInfoNode.SelectNodes(".//div[@class='genre']/div/a");
-			List<string> genres = new List<string>();
-			foreach (var genre in genreNodes)
-			{
-				if (genre.InnerText == "Pop/Rock")
-				{
-					genres.Add("Pop");
-					genres.Add("Rock");
-				}
-				else
-				{
-					genres.Add(genre.InnerText);
-				}
-			}
-			var albumCoverNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumCover']/img");
-			string coverUrl = albumCoverNode.GetAttributeValue("src", string.Empty);
-			List<string> artistUrls = new List<string>();
-			foreach (var artist in artistNodes)
-			{
-				string artistDetailNode = artist.GetAttributeValue("href", string.Empty);
-				artistUrls.Add(artistDetailNode);
-			}
-			List<int> artistIds = new List<int>();
-			foreach (var artist in artists)
-			{
-				if (!await AlbumService.ArtistNameExistsAsync(artist))
-				{
-					Artist newArtist = new Artist
-                    {
-                        ArtistName = artist
-					};
-					context.Artists.Add(newArtist);
-					await context.SaveChangesAsync();
-					artistIds.Add(newArtist.ArtistId);
-				}
-				else
-				{
-					var albumArtist = await AlbumService.GetArtistByNameAsync(artist);
-					artistIds.Add(albumArtist.ArtistId);
-				}
-			}
+			var albumArtist = await AlbumService.GetArtistByNameAsync(artist);
+			artistId = albumArtist.ArtistId;
+		}
 			
-			albumExists = await AlbumService.AlbumExistsAsync(title, artistIds[0]);
-			if (albumExists)
+		albumExists = await AlbumService.AlbumExistsAsync(title, artistId);
+		if (albumExists)
+		{
+			HideSuccess = true;
+			return;
+		}
+		var newAlbum = new Album
 			{
-				HideSuccess = true;
-				return;
-			}
-			var newAlbum = new Album
-				{
-					Name = title,
-					ReleaseDate = releaseDate,
-					AlbumCover = coverUrl,
-					ArtistId = artistIds[0],
-				};
-			context.Albums.Add(newAlbum);
-			await context.SaveChangesAsync();
-			html = await httpClient.GetStringAsync($"https://www.last.fm/music/{artists[0]}/{title}");
-			var doc2 = new HtmlDocument();
-			doc2.LoadHtml(html);
-			var trackNodes = doc2.DocumentNode.SelectNodes("//tr[contains(@class, 'chartlist-row')]");
-			foreach (var track in trackNodes)
-			{
-				var trackNumNode = track.SelectSingleNode(".//td[@class='chartlist-index']");
-				int trackNum = int.Parse(trackNumNode.InnerText);
-				var trackTitleNode = track.SelectSingleNode(".//td[@class='chartlist-name']/a");
-				string trackTitle = trackTitleNode.InnerText;
-				context.Add(new Song 
-					{ 
-						SongPosition = trackNum, 
-						SongName = trackTitle, 
-						AlbumId = newAlbum.AlbumId, 
-						ArtistId = artistIds[0] 
-					});
-			}
-			HideSuccess = false;
-			foreach (var genre in genres)
+				Name = title,
+				ReleaseDate = releaseDate,
+				AlbumCover = coverUrl,
+				ArtistId = artistId,
+			};
+		context.Albums.Add(newAlbum);
+		await context.SaveChangesAsync();
+		html = await httpClient.GetStringAsync($"https://www.last.fm/music/{artist}/{title}");
+		var doc2 = new HtmlDocument();
+		doc2.LoadHtml(html);
+		var trackNodes = doc2.DocumentNode.SelectNodes("//tr[contains(@class, 'chartlist-row')]");
+		foreach (var track in trackNodes)
+		{
+			var trackNumNode = track.SelectSingleNode(".//td[@class='chartlist-index']");
+			int trackNum = int.Parse(trackNumNode.InnerText);
+			var trackTitleNode = track.SelectSingleNode(".//td[@class='chartlist-name']/a");
+			string trackTitle = trackTitleNode.InnerText;
+			context.Add(new Song 
+				{ 
+					SongPosition = trackNum, 
+					SongName = HttpUtility.HtmlDecode(trackTitle),
+					AlbumId = newAlbum.AlbumId, 
+					ArtistId = artistId 
+				});
+		}
+
+		HideSuccess = false;
+		foreach (var genre in genres)
+        {
+            if (!await AlbumService.GenreNameExistsAsync(genre))
             {
-                if (!await AlbumService.GenreNameExistsAsync(genre))
+                Genre newGenre = new Genre
                 {
-                    Genre newGenre = new Genre
-                    {
-                        Name = genre
-                    };
-                    context.Genres.Add(newGenre);
-                    await context.SaveChangesAsync();
-                }
-                var genreId = await AlbumService.GetGenreIdByNameAsync(genre);
-                context.AlbumGenres.Add(new AlbumGenre
-                {
-                    AlbumId = newAlbum.AlbumId,
-                    GenreId = genreId
-                });
+                    Name = genre
+                };
+                context.Genres.Add(newGenre);
                 await context.SaveChangesAsync();
             }
+            var genreId = await AlbumService.GetGenreIdByNameAsync(genre);
+            context.AlbumGenres.Add(new AlbumGenre
+            {
+                AlbumId = newAlbum.AlbumId,
+                GenreId = genreId
+            });
+            await context.SaveChangesAsync();
+        }
 
+		await context.SaveChangesAsync();
+		AlbumService.NotifyStateChanged();
+		await Task.Delay(1000);
+		MudDialog.Close(DialogResult.Ok(true));
+		// manual add below
+		/*var releaseDateUtc = releaseDate.Value.ToUniversalTime();
+		using var context = DbFactory.CreateDbContext();
+		var artist = await context.Artists.FirstOrDefaultAsync(a => a.ArtistName.ToLower() == _newArtist.ToLower());
+		if (artist == null)
+		{
+			artist = new Artist { ArtistName = _newArtist };
+			context.Artists.Add(artist);
 			await context.SaveChangesAsync();
-			AlbumService.NotifyStateChanged();
-			await Task.Delay(1000);
-			MudDialog.Close(DialogResult.Ok(true));
-			/*var releaseDateUtc = releaseDate.Value.ToUniversalTime();
-			using var context = DbFactory.CreateDbContext();
-			var artist = await context.Artists.FirstOrDefaultAsync(a => a.ArtistName.ToLower() == _newArtist.ToLower());
-			if (artist == null)
-			{
-				artist = new Artist { ArtistName = _newArtist };
-				context.Artists.Add(artist);
-				await context.SaveChangesAsync();
-			}
-			var filePath = await SaveImageToServer(uploadedCover);
-			var newAlbum = new Album
-				{
-					Name = _newAlbum,
-					ArtistId = artist.ArtistId,
-					ReleaseDate = releaseDateUtc,
-					AlbumCover = filePath
-				};
-			await context.Albums.AddAsync(newAlbum);
-			await context.SaveChangesAsync();
-			foreach (var genre in selectedGenres)
-			{
-				context.AlbumGenres.Add(new AlbumGenre { AlbumId = newAlbum.AlbumId, GenreId = ((Genre)genre.Value).GenreId });
-			}
-			await context.SaveChangesAsync();
-			AlbumService.NotifyStateChanged();
-			await Task.Delay(1000);
-			MudDialog.Close(DialogResult.Ok(true));*/
 		}
+		var filePath = await SaveImageToServer(uploadedCover);
+		var newAlbum = new Album
+			{
+				Name = _newAlbum,
+				ArtistId = artist.ArtistId,
+				ReleaseDate = releaseDateUtc,
+				AlbumCover = filePath
+			};
+		await context.Albums.AddAsync(newAlbum);
+		await context.SaveChangesAsync();
+		foreach (var genre in selectedGenres)
+		{
+			context.AlbumGenres.Add(new AlbumGenre { AlbumId = newAlbum.AlbumId, GenreId = ((Genre)genre.Value).GenreId });
+		}
+		await context.SaveChangesAsync();
+		AlbumService.NotifyStateChanged();
+		await Task.Delay(1000);
+		MudDialog.Close(DialogResult.Ok(true));*/
+
 	}
 
 	void Cancel()

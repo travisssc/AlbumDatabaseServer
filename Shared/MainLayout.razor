@@ -62,7 +62,10 @@
 				</span>
             </button>
         </div>
-        <a href="/fetchdata" class="tab">Admin view</a>
+        @if (userName == "travisc")
+        {
+            <a href="/fetchdata" class="tab">Admin view</a>
+        }
     </MudAppBar>
 @*     <MudDrawer @bind-Open="@_drawerOpen">
         <NavMenu/>
@@ -216,9 +219,8 @@
         { "Punk", "linear-gradient(45deg, #000000, #FF69B4);"},
         { "Folk", "linear-gradient(45deg, #8B4513, #6B8E23);"},
         { "Instrumental", "linear-gradient(45deg, #87CEEB, #708090);"},
-        { "Chill", " linear-gradient(45deg, #ADD8E6, #40E0D0);"}
-        
-
+        { "Chill", " linear-gradient(45deg, #ADD8E6, #40E0D0);"},
+        { "Rap", "linear-gradient(45deg, #FF5733, #C70039);"},
 
         // Add more genres and their corresponding gradients here
     };
@@ -229,7 +231,7 @@
         {
             return gradient;
         }
-        return "linear-gradient(45deg, #DDD, #EEE)"; // Default gradient if genre is not found
+        return "linear-gradient(45deg, #3bade1, #59D3EC)"; // Default gradient if genre is not found
     }
 
 }
