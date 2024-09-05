@@ -20,7 +20,7 @@
 					@foreach (var album in favoriteAlbums)
 					{
 						<div class="album-card">
-							<AlbumComponent Album=@album />
+							<AlbumComponent Album="@album"/>
 						</div>
 					}
 				}
@@ -37,7 +37,7 @@
 					@foreach (var album in listenedAlbums)
 					{
 						<div class="album-card">
-							<AlbumComponent Album=@album />
+							<AlbumComponent Album="@album" />
 						</div>
 					}
 				}
@@ -117,7 +117,7 @@
 		queueCount = await UserService.GetQueueCountAsync(userName);
 		ratingCount = await UserService.GetRatingCountAsync(userName);
 		var ratingNumbers = await UserService.GetRatingDistributionAsync(userName);
-		userActivities = await UserService.GetUserActivitiesAsync(userName);
+		userActivities = await UserService.GetUserActivitiesAsync(userName, 5);
 		var activityName = (currentUsername == userName) ? "You" : userName;
 		foreach (var activity in userActivities)
 		{

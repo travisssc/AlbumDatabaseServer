@@ -10,62 +10,47 @@
 
 <MudLayout>
     <MudAppBar>
-        <a href="/" style="color: #b3b3b3;">
-            <div class="logo-container">
-                <img src="@logoUrl" class="logo-image" />
-                <h1 class="logo-text">waveformd</h1>
-            </div>
-        </a>
-        <MudSpacer></MudSpacer>
-        <LoginDisplay />
-        <a href="@(isUserLoggedIn ? $"/{userName}/queue" : "/queue")">
-            <div class="tab queue">
-                <span class="material-symbols-outlined">
-                    queue_music
-                </span>
-                <span style="padding-left: 5px;">Your Queue</span>
-            </div>
-        </a>
-        <a href="/Albums" class="tab">
-            Albums
-        </a>
-        <a href="/Lists" class="tab">
-            Lists
-        </a>
-        <a href="/Members" class="tab">
-            Members
-        </a>
-        @* <button class="search-button" @onclick="() => searchOpen = !searchOpen">
-            @if (searchOpen)
-            {
-                <span class="material-symbols-outlined" style="color: #b3b3b3;">
-                    close
-                </span>
-                <div class="search-box">
-                    <input type="text" class="input-search" placeholder=""></input>
+        <div class="appbar-container">
+            <a href="/" style="color: #b3b3b3;">
+                <div class="logo-container">
+                    <img src="@logoUrl" class="logo-image" />
+                    <h1 class="logo-text">waveformd</h1>
                 </div>
-            }
-            else
+            </a>
+            <MudSpacer></MudSpacer>
+            <LoginDisplay />
+            <a href="@(isUserLoggedIn ? $"/{userName}/queue" : "/queue")">
+                <div class="tab queue">
+                    <span class="material-symbols-outlined">
+                        queue_music
+                    </span>
+                    <span style="padding-left: 5px;">Your Queue</span>
+                </div>
+            </a>
+            <a href="/Albums" class="tab">
+                Albums
+            </a>
+            <a href="/Lists" class="tab">
+                Lists
+            </a>
+            <a href="/Members" class="tab">
+                Members
+            </a>
+            <div class="search-bar">
+                <input type="text" class="search-bar-input"
+                       placeholder="Looking for an album?" aria-label="search"
+                       @bind="_searchString" @onkeyup="HandleSearchKeyUp" />
+                <button class="search-bar-submit" aria-label="submit search">
+                    <span class="material-symbols-outlined search">
+                        search
+                    </span>
+                </button>
+            </div>
+            @if (userName == "travisc")
             {
-                <span class="material-symbols-outlined" style="color: #b3b3b3;">
-                    search
-                </span>
+                <a href="/fetchdata" class="tab">Admin view</a>
             }
-        </button> *@
-        <div class="search-bar">
-            <input type="text" class="search-bar-input"
-                   placeholder="Looking for an album?" aria-label="search"
-                   @bind="_searchString" @onkeyup="HandleSearchKeyUp" />
-            <button class="search-bar-submit" aria-label="submit search">
-				<span class="material-symbols-outlined search">
-					search
-				</span>
-            </button>
         </div>
-        @if (userName == "travisc")
-        {
-            <a href="/fetchdata" class="tab">Admin view</a>
-        }
     </MudAppBar>
 @*     <MudDrawer @bind-Open="@_drawerOpen">
         <NavMenu/>

@@ -35,6 +35,16 @@
                         }
                     </div>
 				}
+				@if (invalidReleaseDate) // fix this
+				{
+					<div class="release-date-handler">
+						<label for="releaseDate" class="input-label">Release Date</label>
+						<InputDate id="releaseDate" class="form-control" @bind-Value="manualReleaseDate" />
+						<p class="error-message">Release date could not be found, please input manually.</p>
+						<button @onclick="ConfirmReleaseDate" class="submit-button">Confirm</button>
+						<button @onclick="CancelReleaseDate" class="cancel-button">Cancel</button>
+					</div>
+				}
 				<div class="error-messages">
 					@if (!isUserLoggedIn && submitAttempted)
 					{
@@ -61,7 +71,7 @@
 			<p class="success-text">Submitted album!</p>
 		</div>
 		<button @onclick="Cancel" class="cancel-button">Cancel</button>
-		<button  @onclick="SubmitAlbum" class="submit-button">Submit Album</button>
+		<button  @onclick="ScrapeAlbumData" class="submit-button">Submit Album</button>
 	</DialogActions>
 </MudDialog>
 
@@ -70,10 +80,11 @@
 	MudDialogInstance MudDialog { get; set; } = null!;
 	private MudForm form;
 	private string _newAlbum;
+	private Album newAlbum;
 	private string _newArtist;
 	private List<Genre> genres;
 	MudChip[] selectedGenres = Array.Empty<MudChip>();
-	DateTime? releaseDate = DateTime.Today;
+	DateTime releaseDate;
 	private bool HideSuccess { get; set; } = true;
 	private IBrowserFile uploadedCover;
 	private string _searchQuery;
@@ -82,6 +93,8 @@
 	private bool isUserLoggedIn;
 	private bool submitAttempted = false;
 	private bool albumExists = false;
+	private bool invalidReleaseDate = false;
+	private DateTime manualReleaseDate;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -171,17 +184,8 @@
 		return await UserService.CreateFilePath(coverImage, wwwrootPath, uploadsFolder);
 	}
 
-	async Task SubmitAlbum()
+	private async Task ScrapeAlbumData()
 	{
-		submitAttempted = true;
-		if (selectedResult == null)
-		{
-			return;	
-		}
-		else if (!isUserLoggedIn)
-		{
-			return;
-		}
 		using var context = DbFactory.CreateDbContext();
 		var httpClient = new HttpClient();
 		var html = await httpClient.GetStringAsync(selectedResult.DetailPageUrl);
@@ -199,21 +203,6 @@
 		string artistUrl = artistDetailNode;
 		var basicInfoNode = detailNode.SelectSingleNode(".//div[@id='basicInfoMeta']");
 		var releaseDateNode = basicInfoNode.SelectSingleNode(".//div[@class='release-date']/span");
-		DateTime releaseDate = DateTime.Parse(releaseDateNode.InnerText).ToUniversalTime();
-		var genreNodes = basicInfoNode.SelectNodes(".//div[@class='genre']/div/a");
-		List<string> genres = new List<string>();
-		foreach (var genre in genreNodes)
-		{
-			if (genre.InnerText == "Pop/Rock")
-			{
-				genres.Add("Pop");
-				genres.Add("Rock");
-			}
-			else
-			{
-				genres.Add(HttpUtility.HtmlDecode(genre.InnerText));
-			}
-		}
 		var albumCoverNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumCover']/img");
 		string coverUrl = albumCoverNode.GetAttributeValue("src", string.Empty);
 		int artistId;
@@ -221,13 +210,13 @@
 		{
 			string artistDescription = "";
 			Artist newArtist = new Artist
-            {
+				{
 					ArtistName = HttpUtility.HtmlDecode(artist),
-			};
+				};
 			if (artistDescription != "")
-            {
-                newArtist.ArtistDescription = artistDescription;
-            }
+			{
+				newArtist.ArtistDescription = artistDescription;
+			}
 			context.Artists.Add(newArtist);
 			await context.SaveChangesAsync();
 			artistId = newArtist.ArtistId;
@@ -237,23 +226,55 @@
 			var albumArtist = await AlbumService.GetArtistByNameAsync(artist);
 			artistId = albumArtist.ArtistId;
 		}
-			
+
 		albumExists = await AlbumService.AlbumExistsAsync(title, artistId);
 		if (albumExists)
 		{
 			HideSuccess = true;
 			return;
 		}
-		var newAlbum = new Album
+		newAlbum = new Album
 			{
 				Name = title,
 				ReleaseDate = releaseDate,
 				AlbumCover = coverUrl,
 				ArtistId = artistId,
 			};
+		try
+		{
+			releaseDate = DateTime.Parse(releaseDateNode.InnerText).ToUniversalTime();
+			newAlbum.ReleaseDate = releaseDate;
+		}
+		catch (Exception)
+		{
+			invalidReleaseDate = true;
+			StateHasChanged();
+			return;
+		}
+		submitAttempted = true;
+		await SubmitAlbum();
+	}
+	async Task SubmitAlbum()
+	{
+		if (selectedResult == null)
+		{
+			return;	
+		}
+		else if (!isUserLoggedIn)
+		{
+			return;
+		}
+		using var context = DbFactory.CreateDbContext();
+		var httpClient = new HttpClient();
+		var html = await httpClient.GetStringAsync(selectedResult.DetailPageUrl);
+		var doc = new HtmlDocument();
+		doc.LoadHtml(html);
+		var detailNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumHeader']");
+		if (detailNode == null) return;
 		context.Albums.Add(newAlbum);
 		await context.SaveChangesAsync();
-		html = await httpClient.GetStringAsync($"https://www.last.fm/music/{artist}/{title}");
+        var artist = await context.Artists.FirstOrDefaultAsync(a => a.ArtistId == newAlbum.ArtistId);
+		html = await httpClient.GetStringAsync($"https://www.last.fm/music/{artist.ArtistName}/{newAlbum.Name}");
 		var doc2 = new HtmlDocument();
 		doc2.LoadHtml(html);
 		var trackNodes = doc2.DocumentNode.SelectNodes("//tr[contains(@class, 'chartlist-row')]");
@@ -268,11 +289,25 @@
 					SongPosition = trackNum, 
 					SongName = HttpUtility.HtmlDecode(trackTitle),
 					AlbumId = newAlbum.AlbumId, 
-					ArtistId = artistId 
+					ArtistId = newAlbum.ArtistId 
 				});
 		}
 
-		HideSuccess = false;
+		var basicInfoNode = detailNode.SelectSingleNode(".//div[@id='basicInfoMeta']");
+		var genreNodes = basicInfoNode.SelectNodes(".//div[@class='genre']/div/a");
+		List<string> genres = new List<string>();
+		foreach (var genre in genreNodes)
+		{
+			if (genre.InnerText == "Pop/Rock")
+			{
+				genres.Add("Pop");
+				genres.Add("Rock");
+			}
+			else
+			{
+				genres.Add(HttpUtility.HtmlDecode(genre.InnerText));
+			}
+		}
 		foreach (var genre in genres)
         {
             if (!await AlbumService.GenreNameExistsAsync(genre))
@@ -297,37 +332,22 @@
 		AlbumService.NotifyStateChanged();
 		await Task.Delay(1000);
 		MudDialog.Close(DialogResult.Ok(true));
-		// manual add below
-		/*var releaseDateUtc = releaseDate.Value.ToUniversalTime();
-		using var context = DbFactory.CreateDbContext();
-		var artist = await context.Artists.FirstOrDefaultAsync(a => a.ArtistName.ToLower() == _newArtist.ToLower());
-		if (artist == null)
+	}
+	private async Task ConfirmReleaseDate()
+	{
+		if (newAlbum != null)
 		{
-			artist = new Artist { ArtistName = _newArtist };
-			context.Artists.Add(artist);
-			await context.SaveChangesAsync();
+			newAlbum.ReleaseDate = manualReleaseDate.ToUniversalTime();
+			invalidReleaseDate = false;
+			submitAttempted = true;
+			await SubmitAlbum();
 		}
-		var filePath = await SaveImageToServer(uploadedCover);
-		var newAlbum = new Album
-			{
-				Name = _newAlbum,
-				ArtistId = artist.ArtistId,
-				ReleaseDate = releaseDateUtc,
-				AlbumCover = filePath
-			};
-		await context.Albums.AddAsync(newAlbum);
-		await context.SaveChangesAsync();
-		foreach (var genre in selectedGenres)
-		{
-			context.AlbumGenres.Add(new AlbumGenre { AlbumId = newAlbum.AlbumId, GenreId = ((Genre)genre.Value).GenreId });
-		}
-		await context.SaveChangesAsync();
-		AlbumService.NotifyStateChanged();
-		await Task.Delay(1000);
-		MudDialog.Close(DialogResult.Ok(true));*/
-
 	}
 
+	private void CancelReleaseDate()
+	{
+		invalidReleaseDate = false;
+	}
 	void Cancel()
 	{
 		MudDialog.Cancel();

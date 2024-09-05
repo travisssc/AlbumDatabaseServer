@@ -14,7 +14,8 @@ using MudBlazor;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Configuration.AddEnvironmentVariables();
+var connectionString = builder.Configuration["waveformd_connection"];
 builder.Services.AddMudServices();
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));

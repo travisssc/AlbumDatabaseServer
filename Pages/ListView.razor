@@ -29,13 +29,19 @@
                 </div>
                 <hr class="divider" />
                 <h2 class="list-name">@albumList.ListName</h2>
-                <p class="list-description">@albumList.Description</p>
+                <div class="description-container">
+                    <textarea type="text" class="list-description @(DescriptionDisabled ? "" : "edit")" @bind="albumList.Description" disabled="@DescriptionDisabled" />
+                    <span class="material-symbols-outlined edit" @onclick="() => DescriptionDisabled = !DescriptionDisabled">
+                        edit
+                    </span>
+                </div>
+                <button class="button-save" hidden="@DescriptionDisabled" @onclick="SaveDescription">Save</button>
             </div>
             <div class="album-container">
                 @foreach (var album in albums)
                 {
                     <div class="album-card">
-                        <AlbumComponent album="@album" displayInfo="false" />
+                        <AlbumComponent Album="@album" DisplayInfo=false />
                         <p class="index-text">@(albums.IndexOf(album) + 1)</p>
                     </div>
                 }
@@ -60,6 +66,7 @@
     private int listId;
     private int heardCount;
     private List<ListenedAlbums> currentUserListenedAlbums;
+    private bool DescriptionDisabled = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -102,7 +109,7 @@
                 .Sum(listenedAlbum => albumCount[listenedAlbum.AlbumId]);
         }
     }
-    
+
     private void HandleNavigation(string username)
     {
         NavigationManager.NavigateTo($"/{username}");
@@ -126,5 +133,10 @@
     {
         if (albums.Count == 0) return 0; // Avoid division by zero
         return (double)heardCount / albums.Count * 100;
+    }
+    private async Task SaveDescription()
+    {
+        await UserService.UpdateListDescription(albumList.ListId, albumList.Description);
+        DescriptionDisabled = true;
     }
 }

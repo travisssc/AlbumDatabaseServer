@@ -1,57 +1,121 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
 @using AlbumDatabaseServer.Data
+@using HtmlAgilityPack
 @inject AlbumService AlbumService
+@inject UserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 @using AlbumDatabaseServer.Components
 
 <PageTitle> Home</PageTitle>
-<MudContainer>
-	<MudStack Class="pa-16 mt-2 rounded-lg" Style="background: linear-gradient(to bottom, #212121, #121212)">
-		<MudGrid>
-			<MudSpacer />
-			<MudText>
-				@if (isUserLoggedIn)
-				{
-					<h1>Welcome back,
-						<a class="username-text" href="/@username">@username!</a>
-					</h1>
-				}
-				else
-				{
-					<h1>Welcome! Please
-						<a href="Identity/Account/Login">log in</a>
-						or
-						<a href="Identity/Account/Register">register</a>
-					</h1>
-				}
-			</MudText>
-			<MudSpacer />
-		</MudGrid>
-		<h2 class="pt-16 pb-4">New Releases</h2> 
-		@if (newAlbums == null)
+<div class="container">
+	<div class="header-text">
+		@if (isUserLoggedIn)
 		{
-			<MudText>Loading...</MudText>
-		}
-		else if (!newAlbums.Any())
-		{
-			<MudText>No new releases, check back later!</MudText>
+			<h1 class="text-welcome">Welcome back,
+				<a class="username-text" href="/@username">@username! </a>
+					Here's what we've been listening to...
+			</h1>
 		}
 		else
 		{
-			<Carousel Albums="newAlbums" />
+			<h1 class="text-welcome">Welcome! Please
+				<a href="Identity/Account/Login">log in</a>
+				or
+				<a href="Identity/Account/Register">register</a>
+			</h1>
 		}
-		<div class="video-container">
-			<h2 class="pt-16 pb-4">Artist Spotlight</h2>
-			<div id="youtube-video"></div>
+	</div>
+	<div class="new-container">
+		<h2 class="text new">New on waveformd</h2>
+		<hr class="divider" />
+	</div>
+	@if (recentReviews == null)
+	{
+		<MudText>Loading...</MudText>
+	}
+	else if (!recentReviews.Any())
+	{
+		<MudText>No new activity, check back later!</MudText>
+	}
+	else
+	{
+		<div class="activity-container">
+			@foreach (var review in recentReviews)
+			{
+				var album = AlbumService.Albums.FirstOrDefault(a => a.AlbumId == review.AlbumId);
+				<div class="activity-card">
+					@if (album != null)
+					{
+						<AlbumComponent Album="@album" Activity="true" Color="#212121" 
+						DisplayInfo="false" Size="review" ActivityUsername="@review.UserName"/>
+						var rating = albumRatings[review.AlbumId];
+						<div class="review-info">
+							@if (rating != null)
+							{
+								<div class="star-container">
+									@for (int i = 0; i < rating; i++)
+									{
+										<span class="material-symbols-outlined star">
+											star
+										</span>
+									}
+								</div>
+							}
+							<span class="material-symbols-outlined review" @onclick="() => NavToReview(review)">
+								rate_review
+							</span>
+							<p class="review-date-text">@review.DateReviewed.ToString("MMM dd")</p>
+						</div>
+					}
+				</div>
+			}
 		</div>
-	</MudStack>
-</MudContainer>
+	}
+	<h2 class="text spotlight">Artist Spotlight</h2>
+	<hr class="divider" />
+	<div class="video-container">
+		<div class="video">
+			<div id="youtube-video" />
+		</div>
+	</div>
+	<div class="trending-container">
+		<h2 class="text trending">Trending on waveformd</h2>
+		<hr class="divider" />
+	</div>
+	@if (trendingAlbums == null)
+	{
+		<p>Loading...</p>
+	}
+	else if (!trendingAlbums.Any())
+	{
+		<p>No trending albums, check back later!</p>
+	}
+	else
+	{
+		<Carousel Albums="trendingAlbums" />
+	}
+	@* most popular artists*@
+	<div class="popular-reviews-container">
+		<h2 class="text popular-reviews">Popular reviews this week</h2>
+		<hr class="divider" />
+	</div>
+
+
+	@* from ur queue*@
+
+</div>
 
 @code {
 	private bool isUserLoggedIn;
 	private string username;
-	private List<Album> newAlbums;
+	private List<AlbumReview> recentReviews;
+	private Dictionary<int, int> albumRatings = new Dictionary<int, int>();
+	private List<Album> trendingAlbums;
+	private List<AlbumTrendDto> trendingAlbumsDto;
+	private int trendAmt = 10;
+	private int activityAmt = 5;
 	protected override async Task OnInitializedAsync()
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -61,8 +125,21 @@
 		{
 			username = user.Identity.Name;
 		}
-		newAlbums = await Task.Run(() => AlbumService.GetNewReleases());
+		recentReviews = await UserService.GetRecentReviewsAsync(activityAmt);
+		foreach (var review in recentReviews)
+		{
+			albumRatings[review.AlbumId] = await UserService.GetRatingIntAsync(review.AlbumId, review.UserName);
+		}
+		trendingAlbumsDto = await UserService.GetTrendingAlbumsAsync(trendAmt);
+		trendingAlbums = trendingAlbumsDto.Select(ta => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == ta.AlbumId)).ToList();
 	}
+	private void NavToReview(AlbumReview review)
+    {
+        /*var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
+        var encodedAlbumName = Uri.EscapeDataString(album.Name);
+        NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");*/
+    }
+
 }
 
 

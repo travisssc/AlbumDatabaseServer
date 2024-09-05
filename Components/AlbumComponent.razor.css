@@ -21,17 +21,23 @@
     background: #121212;
     transition: background ease 0.2s;
 }
-.album-card-large {
+.album-card.large {
     height: 267px;
 }
-.album-card-small {
+.album-card.small {
     height: fit-content;
 }
-.album-card-large .album-menu {
+.album-card.review {
+    height: 247px;
+}
+.album-card.large .album-menu {
     bottom: 79px;
 }
-.album-card-small .album-menu {
+.album-card.small .album-menu {
     bottom: 10px;
+}
+.album-card.review .album-menu {
+    bottom: 59px;
 }
 .album-card::before {
     border-radius: 8px;
@@ -63,6 +69,7 @@
     width: 100%;
     margin: 0;
     padding: 0;
+    aspect-ratio: 1;
     object-fit: cover;
     transition: filter 0.3s ease;
     border-top-left-radius: 8px;
@@ -83,6 +90,9 @@
     text-overflow: ellipsis; /* Add ellipsis (...) */
     display: block;
     width: 100%; /* Ensure it takes the full width */
+}
+.album-artist {
+    color: #b3b3b3;
 }
 
 .album-menu {
@@ -134,4 +144,16 @@
     color: #3BADE1;
     font-variation-settings: 'FILL' 1;
     font-weight: bold;
+}
+.activity {
+    position: relative;
+    display: flex;
+    align-content: center;
+    align-items: center;
+}
+.activity-profile-pic {
+    height: 32px;
+    width: 32px;
+    margin: 8px;
+    border-radius: 100vh;
 }

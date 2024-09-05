@@ -22,6 +22,7 @@
 }
 .search-result {
     width: 104px;
+    transition: opacity 0.1s ease;
 }
 .search-result-image {
     max-height: 104px;

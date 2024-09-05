@@ -7,7 +7,7 @@
 
 <div class="review-container @(width  != string.Empty ? width : "")">
 	<div class="album-cover" hidden="@(width == "album-view")">
-		<AlbumComponent album="@album" displayInfo="false" />
+		<AlbumComponent Album="@album" DisplayInfo=false />
 	</div>
 	<div class="review-content">
 		@if (userName != null && width == "album-view")
@@ -65,7 +65,7 @@
 	private bool isFavorited;
 	private DateTime dateListened;
 	private string reviewText;
-	private string userProfilePicture;
+	private string userProfilePicture = "profile-pictures/default-profile.png";
 
 	protected override async Task OnParametersSetAsync()
 	{
@@ -80,8 +80,8 @@
 		}
 		if (userName != null)
 		{
-			userProfilePicture = await UserService.GetAccountPicAsync(userName);
-			if (userProfilePicture == null) userProfilePicture = "profile-pictures/default-profile.png";
+			var profilePicture = await UserService.GetAccountPicAsync(userName);
+			if (profilePicture == null) userProfilePicture = profilePicture;
 		}
 	}
 	private void HandleNavigation(int type)

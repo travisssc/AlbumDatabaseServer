@@ -25,9 +25,9 @@
 .carousel-container .track {
     display: inline-flex;
     transition: transform 0.3s;
+    gap: 15px;
 }
 .carousel-container .card-container {
-    padding-right: 15px;
 }
 .nav button {
     width: 60px;

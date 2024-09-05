@@ -59,10 +59,28 @@
     font-weight: bold;
     margin: 16px 0px 16px 0px;
 }
+.description-container {
+    display: flex;
+    justify-content: space-between;
+}
+.edit {
+    color: #b3b3b3;
+}
+.edit:hover {
+    cursor: pointer;
+    color: white;
+}
 .list-description {
     color: #b3b3b3;
     margin-bottom: 16px;
-
+    background: transparent;
+    transition: background .1s ease;
+    width: 100%;
+    border-radius: 8px;
+    height: fit-content;
+}
+.list-description.edit {
+    background: #212121;
 }
 .album-container {
     width: 1136px;
@@ -84,4 +102,11 @@
 }
 .listened-component {
     margin-left: 8px;
+}
+.button-save {
+    background: #3bade1;
+    color: white;
+    border-radius: 5px;
+    padding: 8px 16px 8px 16px;
+    margin: 8px;
 }

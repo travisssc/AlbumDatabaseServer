@@ -4,6 +4,26 @@
     border-radius: 15px;
     overflow: hidden;
 }
+.container {
+    max-width: 1280px;
+    padding: 64px;
+    margin-top: 8px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    border-radius: 8px;
+    background: linear-gradient(to bottom, #212121, #121212 20%), #121212;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    gap: 12px;
+    flex-direction: column;
+}
+.header-text {
+    display: flex;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 @media screen and (max-width: 430) {
     ::deep #youtube-video iframe {
         width: 350px;
@@ -32,4 +52,73 @@
     color: #3BADE1;
     text-decoration: underline;
     text-underline-offset: 6px;
+}
+.logo {
+    height: 32px;
+    width: auto;
+}
+.text-welcome {
+    margin-top: 16px;
+    font-weight: 100;
+}
+.text {
+    margin-top: 48px;
+    margin-bottom: 2px;
+    color: #b3b3b3;
+    font-weight: 100;
+}
+.divider {
+    border: 1px solid #212121;
+    margin: 0;
+    padding: 0;
+}
+.video-container {
+    display: flex;
+    align-content: center;
+    align-items: center;
+}
+.video {
+    padding-left: 24px;
+    padding-right: 24px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+.activity-container {
+    display: flex;
+    gap: 15px;
+    margin-left: 25px;
+    margin-right: 29px;
+}
+.activity-card {
+    display: flex;
+    flex-direction: column;
+}
+.review-info {
+    padding: 0px 2px 0px 2px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    color: #b3b3b3;
+}
+.star-container {
+    display: flex;
+}
+.star {
+    font-size: 14px;
+    font-variation-settings: 'FILL' 1;
+    font-weight: bold;
+}
+.review {
+    font-size: 14px;
+    margin-left: 8px;
+    cursor: pointer;
+}
+.review:hover {
+    color: white;
+}
+.review-date-text {
+    font-size: 14px;
+    margin-left: auto;
+    text-align: right;
 }
