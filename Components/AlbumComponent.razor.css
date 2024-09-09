@@ -30,6 +30,9 @@
 .album-card.review {
     height: 247px;
 }
+.album-card .tiny {
+    height: 112px;
+}
 .album-card.large .album-menu {
     bottom: 79px;
 }
@@ -76,6 +79,10 @@
     border-top-right-radius: 8px;
     clip-path: inset(0 0 0 0 round 8px);
 }
+    .album-cover .tiny {
+        height: 112px;
+        width: 112px;
+    }
 
 .album-info {
     padding: 12px 8px 8px 8px;
@@ -106,12 +113,21 @@
     transition: opacity 0.3s ease;
     z-index: 2;
 }
+.album-menu.tiny {
+    transform-origin: center;
+    transform: scale(0.7);
+    position: relative;
+}
+
 .album-card:hover .album-cover {
     filter: blur(5px);
 }
 
 .album-card:hover .album-menu {
     opacity: 1;
+}
+.album-card.tiny:hover .album-cover {
+    filter: none;
 }
 .icon {
     color: white;

@@ -6,8 +6,8 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="review-container @(width  != string.Empty ? width : "")">
-	<div class="album-cover" hidden="@(width == "album-view")">
-		<AlbumComponent Album="@album" DisplayInfo=false />
+	<div class="album-cover" hidden="@(width == "album-view")" @onclick="@(width == "home" ? () => HandleNavigation(3) : null)">
+		<AlbumComponent Album="@album" DisplayInfo=false Size="@(width == "home" ? "tiny" : "")"/>
 	</div>
 	<div class="review-content">
 		@if (userName != null && width == "album-view")
@@ -15,8 +15,15 @@
 			<img src="@userProfilePicture" class="profile-picture" @onclick="() => HandleNavigation(2)" />
 		}
 		<div class="album-info">
+			@if (userName != null && width == "home")
+			{
+				<div class="home-profile">
+					<img src="@userProfilePicture" class="profile-picture home" @onclick="() => HandleNavigation(2)" />
+					<p class="username" @onclick="() => HandleNavigation(2)"> @userName</p>
+				</div>
+			}
 			<div class="album-name-year" hidden="@(width == "album-view")">
-				<h2 class="album-name" @onclick="() => HandleNavigation(0)">@album.Name</h2>
+				<h2 class="album-name" @onclick="@(width == "home" ? () => HandleNavigation(3) : () => HandleNavigation(0))">@album.Name</h2>
 				<h3 class="album-year">@album.ReleaseDate.ToString("yyyy")</h3>
 			</div>
 			<h3 class="album-artist" hidden="@(width == "album-view")" @onclick="() => HandleNavigation(1)">@album.Artist.ArtistName</h3>
@@ -81,7 +88,7 @@
 		if (userName != null)
 		{
 			var profilePicture = await UserService.GetAccountPicAsync(userName);
-			if (profilePicture == null) userProfilePicture = profilePicture;
+			if (profilePicture != string.Empty) userProfilePicture = profilePicture;
 		}
 	}
 	private void HandleNavigation(int type)
@@ -101,7 +108,10 @@
 		{
 			NavigationManager.NavigateTo($"/{userName}");
 		}
-
+		else if (type == 3)
+		{
+			NavigationManager.NavigateTo($"/{userName}/album/{album.Name}");
+		}
 	}
 
 }

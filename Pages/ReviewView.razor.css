@@ -1,0 +1,12 @@
+﻿.container {
+    max-width: 1280px;
+    padding: 64px;
+    margin-top: 8px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    border-radius: 8px;
+    background: linear-gradient(to bottom, #212121, #121212 20%), #121212;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+}

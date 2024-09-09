@@ -382,6 +382,8 @@ namespace AlbumDatabaseServer.Data
             using var context = CreateContext();
 			return await context.AlbumReviews
 				.OrderByDescending(r => r.DateReviewed)
+                .Include(r => r.Album)
+                .Include(r => r.Album.Artist)
 				.Take(amount)
 				.ToListAsync();
 		}

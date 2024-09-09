@@ -42,20 +42,21 @@
 	else
 	{
 		<div class="activity-container">
-			@foreach (var review in recentReviews)
+			@for (int i = 0; i < recentReviews.Count() - 1; i++)
 			{
+				var review = recentReviews[i];	
 				var album = AlbumService.Albums.FirstOrDefault(a => a.AlbumId == review.AlbumId);
 				<div class="activity-card">
 					@if (album != null)
 					{
-						<AlbumComponent Album="@album" Activity="true" Color="#212121" 
-						DisplayInfo="false" Size="review" ActivityUsername="@review.UserName"/>
+						<AlbumComponent Album="@album" Activity="true" Color="#212121"
+										DisplayInfo="false" Size="review" ActivityUsername="@review.UserName" />
 						var rating = albumRatings[review.AlbumId];
 						<div class="review-info">
 							@if (rating != null)
 							{
 								<div class="star-container">
-									@for (int i = 0; i < rating; i++)
+									@for (int j = 0; j < rating; j++)
 									{
 										<span class="material-symbols-outlined star">
 											star
@@ -69,7 +70,7 @@
 							<p class="review-date-text">@review.DateReviewed.ToString("MMM dd")</p>
 						</div>
 					}
-				</div>
+				</div>	
 			}
 		</div>
 	}
@@ -100,6 +101,41 @@
 	<div class="popular-reviews-container">
 		<h2 class="text popular-reviews">Popular reviews this week</h2>
 		<hr class="divider" />
+		@if (recentReviews == null)
+		{
+			<p>Loading...</p>
+		}
+		else if (!recentReviews.Any())
+		{
+			<p>No popular reviews this week, be the first to make one!</p>
+		}
+		else
+		{
+			<div class="review-container">
+				<div class="review-panel left">
+					@for (int i = 0; i < recentReviews.Count() - 3; i++)
+					{
+						var review = recentReviews[i];
+						if (review != null)
+						{
+							<ReviewCard album="@review.Album" width="home" userName="@review.UserName" />
+							<hr class="divider review" />
+						}
+					}
+				</div>
+				<div class="review-panel right">
+					@for (int i = 3; i < recentReviews.Count(); i++)
+					{
+						var review = recentReviews[i];
+						if (review != null)
+						{
+							<ReviewCard album="@review.Album" width="home" userName="@review.UserName" />
+							<hr class="divider review" />
+						}
+					}
+				</div>
+			</div>
+		}
 	</div>
 
 
@@ -115,7 +151,7 @@
 	private List<Album> trendingAlbums;
 	private List<AlbumTrendDto> trendingAlbumsDto;
 	private int trendAmt = 10;
-	private int activityAmt = 5;
+	private int activityAmt = 6;
 	protected override async Task OnInitializedAsync()
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();

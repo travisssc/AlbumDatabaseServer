@@ -13,8 +13,18 @@
 .review-container.album-view {
     width: 400px;
 }
+.review-container.home {
+    width: 568px;
+}
 .review-content {
     display: flex;
+}
+.home-profile {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    align-items: center;
+    align-content: center;
 }
 .album-info {
     display: flex;
@@ -48,6 +58,9 @@
         cursor: pointer;
     }
 
+.album-artist {
+    width: fit-content;
+}
 .album-artist:hover {
     color: #3BADE1;
     cursor: pointer;
@@ -72,7 +85,13 @@
     border-radius: 100vh;
     cursor: pointer;
 }
-
+    .profile-picture.home {
+        margin: 0;
+        height: 32px;
+        width: 32px;
+        border-radius: 100vh;
+        cursor: pointer;
+    }
 .user-info-container {
     display: flex;
     padding: 8px 4px 8px 0px;

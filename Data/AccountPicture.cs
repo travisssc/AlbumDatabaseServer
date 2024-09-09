@@ -10,7 +10,7 @@ namespace AlbumDatabaseServer.Data
 		[ForeignKey("UserName")]
 		public string UserName { get; set; }
 		public IdentityUser User { get; set; }
-		public string PicturePath { get; set; }
+		public string PicturePath { get; set; } = "profile-pictures/default-profile.png";
 
 	}
 }

@@ -8,11 +8,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 @if (!string.IsNullOrEmpty(Album.AlbumCover))
 {
-	<div class="album-card @(Size)" @onclick="() => HandleNavigation(Album)"
+	<div class="album-card @(Size)" @onclick="@(Size != "tiny" ? () => HandleNavigation(Album) : null)"
 		style="background: @Color">
 		<div class="album-card-content">
-			<img src="@Album.AlbumCover" class="album-cover" />
-			<div class="album-menu">
+			<img src="@Album.AlbumCover" class="album-cover @(Size == "tiny" ? "tiny" : "")" />
+			<div class="album-menu @(Size == "tiny" ? "tiny" : "")">
 				<button class="function-button"
 						@onclick:stopPropagation="true" @onclick="ToggleListen">
 					<span class="material-symbols-outlined icon listen @(isListened ? "active" : "")">
