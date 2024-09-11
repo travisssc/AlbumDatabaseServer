@@ -87,12 +87,15 @@
 .activity-container {
     display: flex;
     gap: 15px;
-    margin-left: 25px;
-    margin-right: 29px;
+    justify-content: center;
 }
 .activity-card {
     display: flex;
     flex-direction: column;
+}
+.trending-carousel-container
+{
+    margin-left: 25px;
 }
 .review-info {
     padding: 0px 2px 0px 2px;
@@ -103,6 +106,7 @@
 }
 .star-container {
     display: flex;
+    cursor: default;
 }
 .star {
     font-size: 14px;
@@ -143,4 +147,108 @@
 }
 .divider.review {
     margin: 0px 12px 0px 12px;
+}
+.popular-artists-container {
+    width: 100%;
+}
+.artists-container {
+    padding: 32px 32px 0px 32px;
+    display: flex;
+    gap: 32px;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+}
+.artist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+.artist-text {
+    transition: color 0.2s ease;
+}
+.artist:hover .artist-text {
+    color: #3bade1;
+}
+.img-wrapper {
+    position: relative;
+    border-radius: 100vh;
+    display: inline-block;
+}
+.artist-img {
+    border-radius: 100vh;
+    object-fit: cover;
+    height: 90px;
+    width: 90px;
+    display: block;
+}
+    .img-wrapper::before {
+        border-radius: 100vh;
+        content: '';
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        border: 2px solid transparent;
+        transition: border-color 0.2s ease;
+        z-index: 2;
+    }
+    .img-wrapper:hover::before {
+        border-color: white;
+    }
+.queue-card-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+.list-card-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+.list-card {
+    max-width: 340px;
+}
+.list-info {
+    padding: 2px;
+}
+.list-title {
+    margin-top: 2px;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limits to 3 lines */
+    -webkit-box-orient: vertical;
+}
+.list-title:hover {
+    cursor: pointer;
+    color: #3bade1;
+}
+.list-author {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    align-content: center;
+    align-items: center;
+}
+.list-author:hover {
+    cursor: pointer;
+}
+.list-author-pic {
+    border-radius: 100vh;
+    height: 24px;
+    width: 24px;
+    object-fit: cover;
+}
+.author-text {
+    color: #b3b3b3;
+}
+.author-text:hover {
+    color: #3bade1;
 }

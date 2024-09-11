@@ -112,6 +112,7 @@
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 2;
+
 }
 .album-menu.tiny {
     transform-origin: center;

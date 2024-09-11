@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 @if (!string.IsNullOrEmpty(Album.AlbumCover))
 {
-	<div class="album-card @(Size)" @onclick="@(Size != "tiny" ? () => HandleNavigation(Album) : null)"
+	<div class="album-card @(Size)" @onclick="@(!DisableClick && Size != "tiny" ? () => HandleNavigation(Album) : null)"
 		style="background: @Color">
 		<div class="album-card-content">
 			<img src="@Album.AlbumCover" class="album-cover @(Size == "tiny" ? "tiny" : "")" />
@@ -70,6 +70,7 @@ else
 	[Parameter] public string Color { get; set; }
 	[Parameter] public bool Activity { get; set; } = false;
 	[Parameter] public string ActivityUsername { get; set; }
+	[Parameter] public bool DisableClick { get; set; } = false;
 	private bool isListened = false;
 	private bool isFavorited = false;
 	private bool isQueued = false;

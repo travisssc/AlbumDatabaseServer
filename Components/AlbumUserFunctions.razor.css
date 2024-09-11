@@ -1,85 +1,4 @@
-﻿.album-card {
-    background-color: #121212;
-    border-radius: 8px;
-    margin-top: 8px;
-}
-.card-content {
-    padding: 64px;
-    display: flex;
-}
-.side-panel {
-    display: flex;
-    flex-direction: column;
-}
-.divider {
-    border: 1px solid #212121;
-    margin-top: 8px;
-}
-.album-cover {
-    max-width: 400px;
-    max-height: 400px;
-    border-radius: 8px;
-    align-self: flex-start;
-}
-
-.album-text-info {
-    padding-left: 48px;
-}
-.album-name {
-    font-size: 120%;
-    display: flex;
-    justify-content: flex-start;
-    max-height: fit-content;
-}
-.artist-name {
-    color: #b3b3b3;
-    font-weight: 100;
-}
-.artist-name:hover {
-    cursor: pointer;
-    color: #3bade1;
-}
-.artist-genres {
-    display: flex;
-    align-items: center;
-}
-.album-date {
-    color: #535353;
-}
-.genres {
-    padding-left: 16px;
-}
-.tracks-and-ufunctions {
-    padding-top: 16px;
-    display: flex;
-    width: 100%;
-}
-.tracklist {
-    display: flex;
-    flex-direction: column;
-    margin-right: 16px;
-}
-.tracks {
-    padding-top: 8px;
-    padding-left: 32px;
-    margin-right: 0px;
-    padding-right: 24px;
-    overflow-y: scroll;
-    max-height: 40vh;
-    scrollbar-width: thin;
-}
-
-.track {
-    background-color: #212121;
-    padding: 0.5rem 1rem 0.5rem 1rem;
-    margin-bottom: 6px;
-    border-radius: 10px;
-}
-.user-plus-rating {
-    display: flex;
-    flex-direction: column;
-}
-.ufunctions {
+﻿.ufunctions {
     border-radius: 8px;
     border: 3px solid #212121;
     display: flex;
@@ -90,10 +9,12 @@
     height: 100%;
     padding: 8px;
 }
+
 .button-functions {
     display: flex;
     align-items: center;
 }
+
 .icon {
     font-size: 48px;
     padding-left: 16px;
@@ -102,30 +23,37 @@
     color: #b3b3b3;
     transition: color 0.2s ease;
 }
+
 .listen.active {
     color: #3ec945;
     font-variation-settings: 'FILL' 1;
 }
+
 .fav.active {
     color: #d43b3b;
     font-variation-settings: 'FILL' 1;
 }
+
 .q.active {
     color: #3BADE1;
     font-variation-settings: 'FILL' 1;
 }
+
 .function-button {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
+
 .button-text {
     padding-top: 2px;
     transition: color 0.1s ease;
 }
+
 .function-button:hover .button-text {
     color: #FFFFFF;
 }
+
 .rating-container {
     margin-top: 4px;
     margin-bottom: 4px;
@@ -137,6 +65,7 @@
     border-top: solid 2px #212121;
     border-bottom: solid 2px #212121;
 }
+
 .review-box {
     margin-top: 8px;
     padding: 8px;
@@ -149,14 +78,17 @@
     background-color: #212121;
     flex-grow: 1;
 }
+
 .save-area {
     display: flex;
     justify-content: space-between;
 }
+
 .error-text {
     color: #d43b3b;
     width: 188px;
 }
+
 .save-review-button {
     padding: 6px 10px 6px 10px;
     height: 32px;
@@ -164,15 +96,4 @@
     background-color: #3BADE1;
     color: #121212;
     border-radius: 10px;
-}
-.no-review-container {
-    display: flex;
-    height: 107px;
-    width: 100%;
-    align-content: center;
-    justify-content: center;
-    align-items: center;
-}
-.no-review-text {
-    text-align: center;
 }

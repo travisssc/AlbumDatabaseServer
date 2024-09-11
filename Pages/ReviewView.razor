@@ -9,15 +9,59 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <PageTitle>'@albumName' review by @userName • Waveformd</PageTitle>
 <div class="container">
-    @if (reviewedAlbum == null)
-    {
-        <p>Loading...</p>
-    }
-    else
-    {
-        <AlbumComponent Album="@reviewedAlbum" DisplayInfo="false" />
-    }
-    <img src="@userProfilePicUrl"
+    <div class="album-cover">
+        @if (reviewedAlbum == null)
+        {
+            <p>Loading...</p>
+        }
+        else if (isInitialized)
+        {
+            <AlbumComponent Album="@reviewedAlbum" DisplayInfo="false" Size="large" />
+        }
+    </div>
+    <div class="review-content">
+        <div class="user-profile">
+            <img src="@userProfilePicUrl" class="profile-pic" />
+            <p class="username-pretext">Review by<a class="username-text" href="/@userName">@userName</a></p>
+        </div>
+        <hr class="divider" />
+        @if (reviewedAlbum == null)
+        {
+            <h1 class="album-title">Loading...</h1>
+        }
+        else
+        {
+            <div class="album-header">
+                <h1 class="text album-title" @onclick="() => HandleNavigation(0)">@reviewedAlbum.Name</h1>
+                <h2 class="text album-year" @onclick="() => HandleNavigation(2)">@reviewedAlbum.ReleaseDate.ToString("yyyy")</h2>
+            </div>
+            if (reviewedAlbum.Artist != null)
+            {
+                <h2 class="text album-artist" @onclick="() => HandleNavigation(1)">@reviewedAlbum.Artist.ArtistName</h2>
+            }
+        }
+        <div class="review-info">
+            <div class="rating-container">
+                @if (albumRating != null)
+                {
+                    @for (int i = 0; i < albumRating.Rating; i++)
+                    {
+                        <span class="material-symbols-outlined star">
+                            star
+                        </span>
+                    }
+                }
+            </div>
+            <p class="review-date-text">Reviewed @albumReview.DateReviewed.ToString("MMM dd, yyyy")</p>
+            <p class="review-text">@albumReview.ReviewText</p>
+        </div>
+    </div>
+    <div class="user-functions">
+        @if (isUserLoggedIn && isInitialized)
+        {
+            <AlbumUserFunctions album="reviewedAlbum" />
+        }
+    </div>
 </div>
 
 @code {
@@ -26,9 +70,15 @@
     private AlbumReview albumReview = new AlbumReview();
     private Album reviewedAlbum = new Album();
     private string userProfilePicUrl = "profile-pictures/default-profile.png";
+    private AlbumRating albumRating = new AlbumRating();
+    private bool isUserLoggedIn = false;
+    private bool isInitialized = false;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated) isUserLoggedIn = true;
         var profilePicUrl = await UserService.GetAccountPicAsync(userName);
         if (profilePicUrl != string.Empty) userProfilePicUrl = profilePicUrl;
         var albums = AlbumService.Albums.FindAll(a => a.Name == albumName);
@@ -52,7 +102,24 @@
                     }
                 }
             }
-            albumReview = review;
+            if (review != null) albumReview = review;
+            var rating = await UserService.GetRatingAsync(reviewedAlbum.AlbumId, userName);
+            if (rating != null) albumRating = rating;
         }
+        isInitialized = true;
+    }
+    private void HandleNavigation(int type)
+    {
+        switch (type)
+        {
+            case 0:
+                NavigationManager.NavigateTo($"/albums/{reviewedAlbum.Artist.ArtistName}/{reviewedAlbum.Name}");
+                break;
+            case 1:
+                NavigationManager.NavigateTo($"/artists/{reviewedAlbum.Artist.ArtistName}?artistId={reviewedAlbum.ArtistId}");
+                break;
+            case 2:
+                break; // navigation to album by year page
+        };
     }
 }

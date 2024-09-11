@@ -54,12 +54,13 @@
 }
 
     .album-year:hover {
-        color: white;
+        color: #3bade1;
         cursor: pointer;
     }
 
 .album-artist {
     width: fit-content;
+    color: #b3b3b3;
 }
 .album-artist:hover {
     color: #3BADE1;

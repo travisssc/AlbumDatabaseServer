@@ -89,6 +89,44 @@ namespace AlbumDatabaseServer.Data
 			}).ToList();
 			return activityDtos;
 		}
+        public async Task<List<Artist>> GetPopularArtistsAsync(int amount) // very rudimentary implementation!! NOT IN USE RIGHT NOW
+		{
+			using var context = CreateContext();
+            var activityDtos = await GetNewActivityAsync(10);
+			var albumIds = activityDtos
+				.Select(a => a.AlbumId)
+				.Distinct()
+				.ToList();
+            List<Album> albums = new List<Album>();
+            foreach (var album in albumIds)
+            {
+				var newAlbum = await context.Albums
+					.Include(a => a.Artist)
+					.FirstOrDefaultAsync(a => a.AlbumId == album);
+				albums.Add(newAlbum);
+			}
+            List<Artist> artists = new List<Artist>();
+            foreach (var album in albums)
+            {
+                var artist = await context.Artists
+                    .Where(artist => artist.ArtistId == album.ArtistId)
+					.FirstOrDefaultAsync();
+                if (artists.Contains(artist))
+				{
+                    int artistIndex = artists.IndexOf(artist);
+                    if (artistIndex != 0)
+                    {
+						artists.RemoveAt(artistIndex);
+						artists.Insert(artistIndex - 1, artist);
+					}
+                    else
+                    {
+                        artists.Add(artist);
+                    }
+				}
+			}
+            return artists.Take(amount).ToList();
+		}
         // LISTEN FUNCTIONS
         public async Task<bool> IsAlbumListenedAsync(int albumId, string userName)
         {
@@ -411,12 +449,12 @@ namespace AlbumDatabaseServer.Data
 				.FirstOrDefaultAsync(l => l.ListId == listId && l.UserId == userName);
 			return list?.DateUpdated ?? DateTime.MinValue;
 		}
-        public async Task<AlbumLists> GetListAsync(int listId, string userName)
+        public async Task<AlbumLists> GetListAsync(int listId)
         {
             using var context = CreateContext();
 			return await context.Lists
                 .Include(l => l.ListAlbums)
-                .FirstOrDefaultAsync(l => l.ListId == listId && l.UserId == userName);
+                .FirstOrDefaultAsync(l => l.ListId == listId);
         }
         public async Task UpdateListDescription(int listId, string description)
         {
@@ -431,8 +469,17 @@ namespace AlbumDatabaseServer.Data
                 await context.SaveChangesAsync();
             }
         }
-        // PROFILE PIC FUNCTIONS
-        public async Task<string> GetAccountPicAsync(string userName)
+        public async Task<List<AlbumLists>> GetRecentListsAsync(int amount)
+        {
+            using var context = CreateContext();
+            return await context.Lists
+                .OrderByDescending(l => l.DateUpdated)
+                .Include(l => l.ListAlbums)
+                .Take(amount)
+                .ToListAsync();
+        }
+			// PROFILE PIC FUNCTIONS
+			public async Task<string> GetAccountPicAsync(string userName)
 		{
 			using var context = CreateContext();
 			var user = await context.AccountPictures

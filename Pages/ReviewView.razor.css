@@ -10,3 +10,81 @@
     background-size: 100% 100%;
     background-repeat: no-repeat;
 }
+.review-content {
+    margin-left: 64px;
+    width: 100%;
+}
+.user-profile {
+    display: flex;
+    gap: 16px;
+    align-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.profile-pic {
+    height: 32px;
+    width: 32px;
+    border-radius: 100vh;
+}
+.username-pretext {
+    color: #b3b3b3;
+    display: flex;
+    gap: 4px;
+}
+.username-text {
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+.username-text:hover {
+    color: #3bade1;
+}
+.divider {
+    border: 1px solid #212121;
+    margin: 0;
+    padding: 0;
+}
+.album-header {
+    margin-top: 16px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+}
+.text {
+    font-weight: 100;
+    color: #b3b3b3;
+    padding-bottom: 4px;
+    cursor: pointer;
+}
+.text:hover, .text.album-title:hover {
+    color: #3bade1;
+}
+.text.album-title {
+    color: white;
+    font-weight: bold;
+    padding: 0;
+}
+.rating-container {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.star {
+    font-variation-settings: 'FILL' 1;
+    font-weight: bold;
+    color: #3BADE1;
+    padding: 0px;
+    font-size: 125%;
+}
+.review-date-text {
+    margin: 12px 0px 12px 0px;
+    color: #535353;
+}
+.review-text {
+    color: #b3b3b3;
+    font-size: 1rem;
+}
+.user-functions {
+    margin-left: 64px;
+}

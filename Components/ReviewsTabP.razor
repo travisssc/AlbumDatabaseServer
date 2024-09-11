@@ -20,6 +20,12 @@
 		@if (reviewedAlbums == null)
 		{
 			<div class="no-review-container">
+				<p>Loading...</p>
+			</div>
+		}
+		else if (!reviewedAlbums.Any())
+		{
+			<div class="no-review-container">
 				<p>You haven't written any reviews yet!</p>
 			</div>
 		}

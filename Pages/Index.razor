@@ -49,8 +49,10 @@
 				<div class="activity-card">
 					@if (album != null)
 					{
-						<AlbumComponent Album="@album" Activity="true" Color="#212121"
-										DisplayInfo="false" Size="review" ActivityUsername="@review.UserName" />
+						<div class="album-container" @onclick="() => HandleNavigation(0, review)">
+							<AlbumComponent Album="@album" Activity="true" Color="#212121"
+								DisplayInfo="false" Size="review" ActivityUsername="@review.UserName" DisableClick="true" />
+						</div>
 						var rating = albumRatings[review.AlbumId];
 						<div class="review-info">
 							@if (rating != null)
@@ -95,9 +97,32 @@
 	}
 	else
 	{
-		<Carousel Albums="trendingAlbums" />
+		<div class="trending-carousel-container">
+			<Carousel Albums="trendingAlbums" />
+		</div>
 	}
-	@* most popular artists*@
+	@if(popularArtists == null)
+	{
+		<p>Loading...</p>
+	}
+	else
+	{
+		<div class="popular-artists-container">
+			<h2 class="text popular-artists">Popular artists this week</h2>
+			<hr class="divider" />
+			<div class="artists-container">
+				@foreach (var artist in popularArtists)
+				{
+					<div class="artist" @onclick="() => HandleNavigation(1, artist)">
+						<div class="img-wrapper">
+							<img src="@artist.ArtistImage" class="artist-img" />
+						</div>
+						<p class="artist-text">@artist.ArtistName</p>
+					</div>
+				}
+			</div>
+		</div>
+	}
 	<div class="popular-reviews-container">
 		<h2 class="text popular-reviews">Popular reviews this week</h2>
 		<hr class="divider" />
@@ -119,7 +144,10 @@
 						if (review != null)
 						{
 							<ReviewCard album="@review.Album" width="home" userName="@review.UserName" />
-							<hr class="divider review" />
+							if (i < 2)
+							{
+								<hr class="divider review" />
+							}
 						}
 					}
 				</div>
@@ -130,16 +158,71 @@
 						if (review != null)
 						{
 							<ReviewCard album="@review.Album" width="home" userName="@review.UserName" />
-							<hr class="divider review" />
+							if (i < 5)
+							{
+								<hr class="divider review" />
+							}
 						}
 					}
 				</div>
 			</div>
 		}
 	</div>
-
-
-	@* from ur queue*@
+	<div class="queue-container">
+		<h2 class="text queue">From your queue</h2>
+		<hr class="divider" />
+	</div>
+	@if (queuedAlbums == null)
+	{
+		<p>Loading...</p>
+	}
+	else if (!queuedAlbums.Any())
+	{
+		<p>Your queue is empty, add some albums!</p>
+    }
+    else
+    {
+        <div class="queue-card-container">
+            @foreach (var album in queuedAlbums)
+            {
+                <div class="queue-card">
+					<AlbumComponent Album="@album" Color="#212121" />
+                </div>
+            }
+        </div>
+	}
+	<div class="list-container">
+		<h2 class="text lists">New lists</h2>
+		<hr class="divider" />
+	</div>
+	@if (albumLists == null)
+	{
+		<p>Loading...</p>
+	}
+	else if (!albumLists.Any())
+	{
+		<p>No new lists, try creating one of your own!</p>
+	}
+	else
+	{
+        <div class="list-card-container">
+            @foreach (var list in albumLists)
+            {
+				<div class="list-card">
+					<div class="list-container" @onclick="() => HandleNavigation(2, list)">
+						<ListDisplay ListType="albumlist" ListId="list.ListId" />
+					</div>
+					<div class="list-info">
+						<h2 class="list-title" @onclick="() => HandleNavigation(2, list)">@list.ListName</h2>
+						<div class="list-author" @onclick="() => HandleNavigation(3, list.UserId)">
+							<img src="@listProfilePics[list.ListId]" class="list-author-pic" />
+							<p class="author-text">@list.UserId</p>
+						</div>
+					</div>
+                </div>
+            }
+        </div>
+    }
 
 </div>
 
@@ -152,6 +235,12 @@
 	private List<AlbumTrendDto> trendingAlbumsDto;
 	private int trendAmt = 10;
 	private int activityAmt = 6;
+	private List<Artist> popularArtists = new List<Artist>();
+	private List<Album> queuedAlbums = new List<Album>();
+	private List<AlbumLists> albumLists = new List<AlbumLists>();
+	private int listAmt = 3;
+	private Dictionary<int, string> listProfilePics = new Dictionary<int, string>();
+
 	protected override async Task OnInitializedAsync()
 	{
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -160,6 +249,19 @@
 		if (isUserLoggedIn)
 		{
 			username = user.Identity.Name;
+			var queuedAlbumsList = await UserService.GetQueuedAlbumsAsync(username);
+			if (queuedAlbumsList != null)
+			{
+				foreach (var queuedAlbum in queuedAlbumsList)
+				{
+					var album = AlbumService.Albums.FirstOrDefault(a => a.AlbumId == queuedAlbum.AlbumId);
+					if (album != null)
+					{
+						queuedAlbums.Add(album);
+					}
+					if (queuedAlbums.Count == 5) break;
+				}
+			}
 		}
 		recentReviews = await UserService.GetRecentReviewsAsync(activityAmt);
 		foreach (var review in recentReviews)
@@ -168,14 +270,57 @@
 		}
 		trendingAlbumsDto = await UserService.GetTrendingAlbumsAsync(trendAmt);
 		trendingAlbums = trendingAlbumsDto.Select(ta => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == ta.AlbumId)).ToList();
+		foreach (var album in trendingAlbums)
+		{
+			var artist = album.Artist;
+			if (popularArtists.Contains(artist))
+			{
+				int artistIndex = popularArtists.IndexOf(artist);
+				if (artistIndex != 0)
+				{
+					popularArtists.RemoveAt(artistIndex);
+					popularArtists.Insert(artistIndex - 1, artist);
+				}
+			}
+			else
+			{
+				popularArtists.Add(artist);
+			}
+		}
+		albumLists = await UserService.GetRecentListsAsync(listAmt);
+		foreach (var list in albumLists)
+		{
+			var accountPic = await UserService.GetAccountPicAsync(list.UserId);
+			if (accountPic == string.Empty) accountPic = "profile-pictures/default-profile.png";
+			listProfilePics[list.ListId] = accountPic;
+		}
 	}
 	private void NavToReview(AlbumReview review)
-    {
-        /*var encodedArtistName = Uri.EscapeDataString(album.Artist.ArtistName);
-        var encodedAlbumName = Uri.EscapeDataString(album.Name);
-        NavigationManager.NavigateTo($"/albums/{encodedArtistName}/{encodedAlbumName}");*/
-    }
-
+	{
+		NavigationManager.NavigateTo($"/{review.UserName}/album/{review.Album.Name}");
+	}
+	private void HandleNavigation(int type, object selectedItem)
+	{
+		switch (type)
+		{
+			case 0:
+				AlbumReview review = selectedItem as AlbumReview;
+				NavigationManager.NavigateTo($"/{review?.UserName}/album/{review?.Album.Name}");
+				break;
+			case 1:
+				Artist artist = selectedItem as Artist;
+				NavigationManager.NavigateTo($"/artists/{artist.ArtistName}?artistId={artist.ArtistId}");
+				break;
+			case 2:
+				AlbumLists list = selectedItem as AlbumLists;
+				NavigationManager.NavigateTo($"{list.UserId}/lists/{list.ListName}?listId={list.ListId}");
+				break;
+			case 3:
+				string userName = selectedItem as string;
+				NavigationManager.NavigateTo(userName);
+				break;
+		}
+	}
 }
 
 

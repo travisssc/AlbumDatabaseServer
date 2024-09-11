@@ -13,7 +13,7 @@
         index++;
         prev.classList.add('show');
         track.style.transform = `translateX(-${index * carouselWidth + 15}px)`;
-        if (track.offsetWidth - (index * carouselWidth) < carouselWidth) {
+        if (track.offsetWidth - (index * carouselWidth + 16) < carouselWidth) {
             next.classList.add('hide');
         }
     })

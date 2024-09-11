@@ -6,8 +6,8 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="review-container @(width  != string.Empty ? width : "")">
-	<div class="album-cover" hidden="@(width == "album-view")" @onclick="@(width == "home" ? () => HandleNavigation(3) : null)">
-		<AlbumComponent Album="@album" DisplayInfo=false Size="@(width == "home" ? "tiny" : "")"/>
+	<div class="album-cover" hidden="@(width == "album-view")" @onclick="() => HandleNavigation(3)">
+		<AlbumComponent Album="@album" DisplayInfo=false Size="@(width == "home" ? "tiny" : "small")" DisableClick="true"/>
 	</div>
 	<div class="review-content">
 		@if (userName != null && width == "album-view")
@@ -23,7 +23,7 @@
 				</div>
 			}
 			<div class="album-name-year" hidden="@(width == "album-view")">
-				<h2 class="album-name" @onclick="@(width == "home" ? () => HandleNavigation(3) : () => HandleNavigation(0))">@album.Name</h2>
+				<h2 class="album-name" @onclick="() => HandleNavigation(3)">@album.Name</h2>
 				<h3 class="album-year">@album.ReleaseDate.ToString("yyyy")</h3>
 			</div>
 			<h3 class="album-artist" hidden="@(width == "album-view")" @onclick="() => HandleNavigation(1)">@album.Artist.ArtistName</h3>
@@ -54,11 +54,11 @@
 				}
 				@if (width != "album-view")
 				{
-					<h4 class="listened-text">Listened @dateListened.ToString("dd MMMM yyyy")</h4>
+					<h4 class="listened-text">Listened @dateListened.ToString("dd MMM, yyyy")</h4>
 				}
 			</div>
 			<div class="review-text @(width  != string.Empty ? width : "")">
-				<h3>@reviewText</h3>
+				<p>@reviewText</p>
 			</div>
 		</div>
 	</div>
