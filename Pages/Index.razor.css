@@ -95,7 +95,8 @@
 }
 .trending-carousel-container
 {
-    margin-left: 25px;
+    display: flex;
+    justify-content: center;
 }
 .review-info {
     padding: 0px 2px 0px 2px;
@@ -202,7 +203,6 @@
     }
 .queue-card-container {
     display: flex;
-    gap: 15px;
     justify-content: center;
 }
 .list-card-container {

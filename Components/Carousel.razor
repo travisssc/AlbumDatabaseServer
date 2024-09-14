@@ -3,36 +3,50 @@
 @inject IJSRuntime JSRuntime
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-<div class="carousel-container">
-	<div class="carousel-inner">
-		<div class="track">
-			@foreach (var album in Albums)
-			{
-				<div class="card-container">
-					<AlbumComponent Album=@album DisplayInfo="true" Size="large" Color="#212121" />
-				</div>
-			}
+<CascadingValue Value="CarouselState">
+	<div id="carousel-@CarouselState.CarouselId" class="carousel-container @CarouselState.Size">
+		<div class="carousel-inner">
+			<div class="track" id="track-@CarouselState.CarouselId">
+				@foreach (var album in CarouselState.Albums)
+				{
+					<div class="card-container">
+						<AlbumComponent Album=@album DisplayInfo="@(CarouselState.Size != "max")" Size=@CarouselState.Size Color="#212121" />
+					</div>
+				}
+			</div>
+		</div>
+		<div class="nav">
+			<button class="prev" id="prev-@CarouselState.CarouselId">
+				<span class="material-symbols-outlined">
+					arrow_back_ios
+				</span>
+			</button>
+			<button class="next" id="next-@CarouselState.CarouselId">
+				<span class="material-symbols-outlined">
+					arrow_forward_ios
+				</span>
+			</button>
 		</div>
 	</div>
-	<div class="nav">
-		<button class="prev">
-			<span class="material-symbols-outlined">
-				arrow_back_ios
-			</span>
-		</button>
-		<button class="next">
-			<span class="material-symbols-outlined">
-				arrow_forward_ios
-			</span>
-		</button>
-	</div>
-</div>
+</CascadingValue>
+
 
 @code {
 	[Parameter]
 	public List<Album> Albums { get; set; }
+	[Parameter]
+	public string Size { get; set; }
+	private CarouselState CarouselState = new CarouselState();
+	protected override void OnInitialized()
+    {
+        CarouselState.Albums = Albums;
+        CarouselState.Size = Size;
+    }
 	protected override void OnAfterRender(bool firstRender)
 	{
-		JSRuntime.InvokeVoidAsync("initializeCarousel");
+		if (firstRender)
+		{
+			JSRuntime.InvokeVoidAsync("initializeCarousel", CarouselState.CarouselId);
+		}
 	}
 }

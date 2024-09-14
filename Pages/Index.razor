@@ -1,14 +1,13 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
 @using AlbumDatabaseServer.Data
-@using HtmlAgilityPack
 @inject AlbumService AlbumService
 @inject UserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @using AlbumDatabaseServer.Components
 
-<PageTitle> Home</PageTitle>
+<PageTitle>Waveformd • Discover and celebrate music</PageTitle>
 <div class="container">
 	<div class="header-text">
 		@if (isUserLoggedIn)
@@ -93,12 +92,12 @@
 	}
 	else if (!trendingAlbums.Any())
 	{
-		<p>No trending albums, check back later!</p>
+		<p>No trending albums, check again later!</p>
 	}
 	else
 	{
 		<div class="trending-carousel-container">
-			<Carousel Albums="trendingAlbums" />
+			<Carousel Albums="trendingAlbums"/>
 		</div>
 	}
 	@if(popularArtists == null)
@@ -183,12 +182,7 @@
     else
     {
         <div class="queue-card-container">
-            @foreach (var album in queuedAlbums)
-            {
-                <div class="queue-card">
-					<AlbumComponent Album="@album" Color="#212121" />
-                </div>
-            }
+			<Carousel Albums="queuedAlbums"/>
         </div>
 	}
 	<div class="list-container">
@@ -259,7 +253,6 @@
 					{
 						queuedAlbums.Add(album);
 					}
-					if (queuedAlbums.Count == 5) break;
 				}
 			}
 		}

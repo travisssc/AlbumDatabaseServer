@@ -8,11 +8,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 @if (!string.IsNullOrEmpty(Album.AlbumCover))
 {
-	<div class="album-card @(Size)" @onclick="@(!DisableClick && Size != "tiny" ? () => HandleNavigation(Album) : null)"
+	<div class="album-card @Size" @onclick="@(!DisableClick && Size != "tiny" ? () => HandleNavigation(Album) : null)"
 		style="background: @Color">
 		<div class="album-card-content">
-			<img src="@Album.AlbumCover" class="album-cover @(Size == "tiny" ? "tiny" : "")" />
-			<div class="album-menu @(Size == "tiny" ? "tiny" : "")">
+			<img src="@Album.AlbumCover" class="album-cover @Size" />
+			<div class="album-menu @Size">
 				<button class="function-button"
 						@onclick:stopPropagation="true" @onclick="ToggleListen">
 					<span class="material-symbols-outlined icon listen @(isListened ? "active" : "")">
@@ -66,7 +66,7 @@ else
 @code {
 	[Parameter] public Album Album { get; set; }
 	[Parameter] public bool DisplayInfo { get; set; } = true;
-	[Parameter] public string Size { get; set; }
+	[Parameter] public string Size { get; set; } = "large";
 	[Parameter] public string Color { get; set; }
 	[Parameter] public bool Activity { get; set; } = false;
 	[Parameter] public string ActivityUsername { get; set; }
@@ -80,7 +80,6 @@ else
 	protected override async Task OnInitializedAsync()
 	{
 		if (DisplayInfo) Size = "large";
-		else if (Size != "review") Size = "small";
 		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 		var user = authState.User;
 		if (user.Identity.IsAuthenticated)

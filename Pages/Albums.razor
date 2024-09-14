@@ -1,6 +1,52 @@
-﻿@page "/Albums"
+﻿@page "/albums"
+@using Microsoft.AspNetCore.Components.Authorization
+@using AlbumDatabaseServer.Data
+@inject AlbumService AlbumService
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@using AlbumDatabaseServer.Components
 
-albums page
+<PageTitle>Albums • Waveformd</PageTitle>
+<div class="container">
+    <div class="search-and-sort">
+        <div class="sort-container">
+            <p class="text browse">Browse by</p>
+            <div class="sort-component">
+                <SortComponent />
+            </div>
+        </div>
+        <div class="search-bar">
+            <p class="text search-label">Find an album</p>
+            <input type="text" class="search-bar-input" />
+        </div>
+    </div>
+    <div class="popular-container">
+        <h2 class="text popular">Popular albums this week</h2>
+        <hr class="divider" />
+    </div>
+    @if (trendingAlbums == null)
+    {
+        <p>Loading...</p>
+    }
+    else if (!trendingAlbums.Any())
+    {
+        <p>No popular albums this week, check again later!</p>
+    }
+    else
+    {
+        <Carousel Albums="trendingAlbums" Size="max" />
+    }
+</div>
+
 @code {
+    private List<Album> trendingAlbums;
+    private List<AlbumTrendDto> trendingAlbumsDto;
+    private int trendAmt = 15;
+    protected override async Task OnInitializedAsync()
+    {
+        trendingAlbumsDto = await UserService.GetTrendingAlbumsAsync(trendAmt);
+        trendingAlbums = trendingAlbumsDto.Select(ta => AlbumService.Albums.FirstOrDefault(a => a.AlbumId == ta.AlbumId)).ToList();
+    }
 
 }

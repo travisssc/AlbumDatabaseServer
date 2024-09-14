@@ -41,7 +41,7 @@
                 @foreach (var album in albums)
                 {
                     <div class="album-card">
-                        <AlbumComponent Album="@album" DisplayInfo=false />
+                        <AlbumComponent Album="@album" DisplayInfo=false Size="small"/>
                         <p class="index-text">@(albums.IndexOf(album) + 1)</p>
                     </div>
                 }

@@ -1,5 +1,5 @@
 ﻿.album-cover:hover {
-    filter: blur(2px);
+    filter: blur(3px);
 }
 .album-menu:hover {
     opacity: 1;
@@ -20,6 +20,10 @@
     position: relative;
     background: #121212;
     transition: background ease 0.2s;
+}
+.album-card.max {
+    height: 374px;
+    width: 374px;
 }
 .album-card.large {
     height: 267px;
@@ -83,6 +87,10 @@
         height: 112px;
         width: 112px;
     }
+    .album-cover.max {
+        height: 374px;
+        width: 374px;
+    }
 
 .album-info {
     padding: 12px 8px 8px 8px;
@@ -119,11 +127,13 @@
     transform: scale(0.7);
     position: relative;
 }
-
-.album-card:hover .album-cover {
-    filter: blur(5px);
+.album-menu.max {
+    bottom: 16px;
 }
 
+.album-card:hover .album-cover {
+    filter: blur(1px);
+}
 .album-card:hover .album-menu {
     opacity: 1;
 }
