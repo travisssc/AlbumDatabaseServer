@@ -114,8 +114,30 @@
 	{
 		if (!string.IsNullOrEmpty(_searchQuery))
 		{
+			// Search local database first
+			var localAlbums = await SearchLocalDatabaseAsync(_searchQuery);
+
+			// Then search AllMusic
 			string html = await SearchAlbumsAsync(_searchQuery);
 			_searchResults = ParseSearchResults(html);
+
+			// Add local database results to the top
+			foreach (var album in localAlbums)
+			{
+				var existingResult = _searchResults.FirstOrDefault(r => r.Title == album.Name);
+				if (existingResult == null)
+				{
+					_searchResults.Insert(0, new SearchResult
+					{
+						Title = album.Name,
+						Artist = album.Artist.ArtistName,
+						Year = album.ReleaseDate.Year.ToString(),
+						AlbumCoverUrl = album.AlbumCover,
+						DetailPageUrl = "" // Local albums don't have a detail URL
+					});
+				}
+			}
+
 			StateHasChanged();
 		}
 		else
@@ -186,73 +208,118 @@
 
 	private async Task ScrapeAlbumData()
 	{
-		using var context = DbFactory.CreateDbContext();
-		var httpClient = new HttpClient();
-		var html = await httpClient.GetStringAsync(selectedResult.DetailPageUrl);
-		var doc = new HtmlDocument();
-		doc.LoadHtml(html);
-		var detailNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumHeader']");
-		if (detailNode == null) return;
-		var headlineNode = detailNode.SelectSingleNode(".//div[@id='albumHeadline']");
-		if (headlineNode == null) return;
-		var titleNode = headlineNode.SelectSingleNode(".//h1[@id='albumTitle']");
-		string title = HttpUtility.HtmlDecode(titleNode.InnerText);
-		var artistNode = headlineNode.SelectSingleNode(".//h2[@id='albumArtists']/a");
-		string artist = HttpUtility.HtmlDecode(artistNode.InnerText);
-		string artistDetailNode = artistNode.GetAttributeValue("href", string.Empty);
-		string artistUrl = artistDetailNode;
-		var basicInfoNode = detailNode.SelectSingleNode(".//div[@id='basicInfoMeta']");
-		var releaseDateNode = basicInfoNode.SelectSingleNode(".//div[@class='release-date']/span");
-		var albumCoverNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumCover']/img");
-		string coverUrl = albumCoverNode.GetAttributeValue("src", string.Empty);
-		int artistId;
-		if (!await AlbumService.ArtistNameExistsAsync(artist))
-		{
-			string artistDescription = "";
-			Artist newArtist = new Artist
-				{
-					ArtistName = HttpUtility.HtmlDecode(artist),
-				};
-			if (artistDescription != "")
-			{
-				newArtist.ArtistDescription = artistDescription;
-			}
-			context.Artists.Add(newArtist);
-			await context.SaveChangesAsync();
-			artistId = newArtist.ArtistId;
-		}
-		else
-		{
-			var albumArtist = await AlbumService.GetArtistByNameAsync(artist);
-			artistId = albumArtist.ArtistId;
-		}
+		submitAttempted = true;
 
-		albumExists = await AlbumService.AlbumExistsAsync(title, artistId);
-		if (albumExists)
+		if (selectedResult == null)
 		{
-			HideSuccess = true;
 			return;
 		}
-		newAlbum = new Album
+
+		using var context = DbFactory.CreateDbContext();
+		var httpClient = new HttpClient();
+
+		try
+		{
+			var html = await httpClient.GetStringAsync(selectedResult.DetailPageUrl);
+			var doc = new HtmlDocument();
+			doc.LoadHtml(html);
+
+			// Use the search result data as fallback
+			string title = selectedResult.Title ?? "Unknown Album";
+			string artist = selectedResult.Artist ?? "Unknown Artist";
+			string coverUrl = selectedResult.AlbumCoverUrl ?? "";
+			DateTime releaseDate = DateTime.Now;
+
+			// Try to parse release year from search result
+			if (!string.IsNullOrEmpty(selectedResult.Year) && int.TryParse(selectedResult.Year, out int year))
+			{
+				releaseDate = new DateTime(year, 1, 1);
+			}
+
+			// Try to get more details from the detail page
+			var detailNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumHeader']");
+			if (detailNode != null)
+			{
+				var headlineNode = detailNode.SelectSingleNode(".//div[@id='albumHeadline']");
+				if (headlineNode != null)
+				{
+					var titleNode = headlineNode.SelectSingleNode(".//h1[@id='albumTitle']");
+					if (titleNode != null)
+						title = HttpUtility.HtmlDecode(titleNode.InnerText);
+
+					var artistNode = headlineNode.SelectSingleNode(".//h2[@id='albumArtists']/a");
+					if (artistNode != null)
+						artist = HttpUtility.HtmlDecode(artistNode.InnerText);
+				}
+
+				var basicInfoNode = detailNode.SelectSingleNode(".//div[@id='basicInfoMeta']");
+				if (basicInfoNode != null)
+				{
+					var releaseDateNode = basicInfoNode.SelectSingleNode(".//div[@class='release-date']/span");
+					if (releaseDateNode != null)
+					{
+						try
+						{
+							releaseDate = DateTime.Parse(releaseDateNode.InnerText).ToUniversalTime();
+						}
+						catch { }
+					}
+				}
+			}
+
+			var albumCoverNode = doc.DocumentNode.SelectSingleNode("//div[@id='albumCover']/img");
+			if (albumCoverNode != null)
+			{
+				string detailCoverUrl = albumCoverNode.GetAttributeValue("src", string.Empty);
+				if (!string.IsNullOrEmpty(detailCoverUrl))
+					coverUrl = detailCoverUrl;
+			}
+
+			// Get or create artist
+			int artistId;
+			if (!await AlbumService.ArtistNameExistsAsync(artist))
+			{
+				Artist newArtist = new Artist
+				{
+					ArtistName = HttpUtility.HtmlDecode(artist),
+					ArtistDescription = "",
+					ArtistImage = ""
+				};
+				context.Artists.Add(newArtist);
+				await context.SaveChangesAsync();
+				artistId = newArtist.ArtistId;
+			}
+			else
+			{
+				var albumArtist = await AlbumService.GetArtistByNameAsync(artist);
+				artistId = albumArtist.ArtistId;
+			}
+
+			// Check if album exists
+			albumExists = await AlbumService.AlbumExistsAsync(title, artistId);
+			if (albumExists)
+			{
+				HideSuccess = true;
+				StateHasChanged();
+				return;
+			}
+
+			// Create album
+			newAlbum = new Album
 			{
 				Name = title,
 				ReleaseDate = releaseDate,
 				AlbumCover = coverUrl,
 				ArtistId = artistId,
 			};
-		try
-		{
-			releaseDate = DateTime.Parse(releaseDateNode.InnerText).ToUniversalTime();
-			newAlbum.ReleaseDate = releaseDate;
+
+			await SubmitAlbum();
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
-			invalidReleaseDate = true;
+			System.Diagnostics.Debug.WriteLine($"Error in ScrapeAlbumData: {ex.Message}");
 			StateHasChanged();
-			return;
 		}
-		submitAttempted = true;
-		await SubmitAlbum();
 	}
 	async Task SubmitAlbum()
 	{
@@ -343,7 +410,16 @@
 			await SubmitAlbum();
 		}
 	}
-
+	private async Task<List<Album>> SearchLocalDatabaseAsync(string query)
+	{
+		using var context = DbFactory.CreateDbContext();
+		var results = await context.Albums
+			.Include(a => a.Artist)
+			.Where(a => a.Name.ToLower().Contains(query.ToLower()) ||
+						a.Artist.ArtistName.ToLower().Contains(query.ToLower()))
+			.ToListAsync();
+		return results;
+	}
 	private void CancelReleaseDate()
 	{
 		invalidReleaseDate = false;

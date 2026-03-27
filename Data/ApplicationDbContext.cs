@@ -24,13 +24,13 @@ namespace AlbumDatabaseServer.Data
                 .HasOne(ag => ag.Album)
                 .WithMany(a => a.AlbumGenres)
                 .HasForeignKey(ag => ag.AlbumId);
-
         }
+
         public DbSet<Album> Albums { get; set; }
         public DbSet<Artist> Artists { get; set; }
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Song> Songs { get; set; }
-        public DbSet<AlbumGenre> AlbumGenres {  get; set; } 
+        public DbSet<AlbumGenre> AlbumGenres { get; set; }
         public DbSet<ListAlbum> ListAlbums { get; set; }
         // User function tables
         public DbSet<AccountQueue> AccountQueue { get; set; }

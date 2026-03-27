@@ -57,12 +57,13 @@ public class AlbumService
     public decimal GetAverageRating(int albumId)
     {
         using var context = CreateContext();
-		var ratings = context.AlbumRatings
-			.Where(r => r.AlbumId == albumId)
-			.Select(r => (decimal)r.Rating);
-		return ratings.Any() ? ratings.Average() : 0M;
-	}
-	public int GetRatingCount(int albumId)
+        var ratings = context.AlbumRatings
+            .Where(r => r.AlbumId == albumId)
+            .Select(r => (decimal)r.Rating)
+            .ToList();
+        return ratings.Any() ? ratings.Average() : 0M;
+    }
+    public int GetRatingCount(int albumId)
     {
         using var context = CreateContext();
         return context.AlbumRatings

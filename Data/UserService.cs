@@ -1,5 +1,4 @@
 ﻿using AlbumDatabaseServer.Components;
-using AlbumDatabaseServer.Migrations;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Build.Framework;

@@ -18,7 +18,7 @@ builder.Configuration.AddEnvironmentVariables();
 var connectionString = builder.Configuration["waveformd_connection"];
 builder.Services.AddMudServices();
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseSqlite("Data Source=waveformd.db"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -33,7 +33,20 @@ builder.Services.AddSingleton<GenreService>();
 
 
 var app = builder.Build();
+// Auto-login for demo
+app.Use(async (context, next) =>
+{
+    var signInManager = context.RequestServices.GetRequiredService<SignInManager<IdentityUser>>();
+    var userManager = context.RequestServices.GetRequiredService<UserManager<IdentityUser>>();
 
+    var user = await userManager.FindByEmailAsync("traviscampbell7777@gmail.com");
+    if (user != null && !context.User.Identity.IsAuthenticated)
+    {
+        await signInManager.SignInAsync(user, isPersistent: true);
+    }
+
+    await next();
+});
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
